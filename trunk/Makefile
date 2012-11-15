@@ -6,10 +6,8 @@ LD = g++ -O2 #-DDEBUG=y
 LDFLAGS =
 CFLAGS=-g -Wall `pkg-config --cflags libfreenect`  -Wall -ltheora -ltheoraenc -logg -ltheoradec `xml2-config --cflags`
 
-GLPROG = kinect-annotation
-OBJECTS = main.o
-
-OBJECTS2 = freenect.o main.o 
+PROG = kinect-annotation
+OBJECTS = freenect.o main.o 
 
 # Kinect library
 LIBS = `pkg-config libfreenect --libs --cflags` `pkg-config opencv --libs --cflags`  -lpthread -lm -lusb-1.0 -lfreenect -Wunknown-pragmas
@@ -22,7 +20,7 @@ LIBS +=  `xml2-config --libs`
 all: $(PROG)
 
 $(PROG): $(OBJECTS)
-	$(LD) $(LDFLAGS) $(OBJECTS) -o $(GLPROG) $(GLLIBS)
+	$(LD) $(LDFLAGS) $(OBJECTS) -o $(PROG) $(LIBS)
 
 %.o: src/%.cpp
 	$(CXX) $(CFLAGS) $(LDFLAGS) -c $<  $(LIBS) 
