@@ -3,30 +3,49 @@
 
 CXX = g++ -O2 
 LD = g++ -O2 #-DDEBUG=y
-LDFLAGS =
-CFLAGS=-g -Wall `pkg-config --cflags libfreenect`  -Wall -ltheora -ltheoraenc -logg -ltheoradec `xml2-config --cflags` -export-dynamic `pkg-config --cflags gtk+-2.0 gmodule-export-2.0 gthread-2.0 gmodule-2.0` `pkg-config libfreenect --cflags` `pkg-config opencv --cflags`
 
-PROG = kinect-annotation
-OBJECTS = freenect.o gmain.o 
-#OBJECTS = freenect.o main.o 
+# program use library gtk
+PROG_1 = annotation-gtk
+OBJECTS_1 = freenect.o gmain.o 
+
+# program use library gtkmm
+PROG_2 = annotation-gtkmm
+OBJECTS_2 = freenect.o ggmain.o 
 
 # Kinect library
-LIBS = `pkg-config libfreenect --libs` `pkg-config opencv --libs`  -lpthread -lm -lusb-1.0 -lfreenect -Wunknown-pragmas
-LIBS +=   -lpthread -lm -lusb-1.0 -L/usr/local/lib64/ -I/usr/local/include/libfreenect/ #./src/cvblobs8.3/libblob.a # no fedora -L/usr/local/lib64/
-# GTK library
-LIBS += `pkg-config --libs gtk+-2.0 gthread-2.0 gmodule-2.0` -export-dynamic
-#LIBS += `pkg-config --cflags --libs gtk+-3.0  `
+LIBS = `pkg-config libfreenect --libs` -lm -lusb-1.0 -lfreenect -Wunknown-pragmas
+#LIBS +=   -lpthread -lm -lusb-1.0 #-I/usr/local/include/libfreenect/ # no fedora -L/usr/local/lib64/
+
+# Opencv library
+LIBS += `pkg-config opencv --libs`
+
 # XML library
-LIBS +=  `xml2-config --libs`
+LIBS +=  `xml2-config --libs` -lpthread 
 
-all: $(PROG) 
+# GTK library
+LIBS_1 += $(LIBS) `pkg-config --libs gtk+-2.0 gthread-2.0 gmodule-2.0` -export-dynamic
+LIBS_2 += $(LIBS) `pkg-config --libs gtkmm-3.0`
 
-$(PROG): $(OBJECTS)
-	$(LD) $(OBJECTS) -o $(PROG) $(LIBS)
+CFLAGS=-g -Wall `pkg-config --cflags libfreenect`  -Wall -ltheora -ltheoraenc -logg -ltheoradec `xml2-config --cflags` `pkg-config opencv --cflags`
+CFLAGS_1=$(CFLAGS) -export-dynamic `pkg-config --cflags gtk+-2.0 gmodule-export-2.0 gthread-2.0 gmodule-2.0` 
+CFLAGS_2=$(CFLAGS) `pkg-config --cflags gtkmm-3.0` 
+
+
+all: $(PROG_2) $(PROG_1)
+
+
+$(PROG_1): $(OBJECTS_1)
+	$(LD) $(OBJECTS_1) -o $(PROG_1) $(LIBS_1)
+
+$(PROG_2): $(OBJECTS_2)
+	$(LD) $(OBJECTS_2) -o $(PROG_2) $(LIBS_2)
+
+ggmain.o: src/ggmain.cpp
+	$(CXX) -c $<  $(CFLAGS_2)
 
 %.o: src/%.cpp
-	$(CXX) $(CFLAGS) $(LDFLAGS) -c $< 
+	$(CXX) $(CFLAGS_1) -c $< 
 
 
 clean:
-	rm -rf *.o $(CVPROG) $(GLPROG)
+	rm -rf *.o $(PROG_2) $(PROG_1)
