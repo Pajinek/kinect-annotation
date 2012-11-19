@@ -1,5 +1,6 @@
 #include <gtk/gtk.h>
 #include "freenect.h"
+#include "apps.h"
 
 #define C_EXTERN    extern "C"
 #define TIMER 30
@@ -11,13 +12,13 @@ on_window_destroy (GtkObject *object, gpointer user_data)
 }
 
 C_EXTERN void 
-on_rec_clicked (GtkObject *object, gpointer user_data)
+on_rec_clicked (GtkObject *object, gpointer data)
 {
     g_print("rec..\n");
 }
 
 C_EXTERN void 
-on_save_clicked (GtkObject *object, gpointer user_data)
+on_save_clicked (GtkObject *object, gpointer data)
 {
     g_print("save..\n");
 }
@@ -28,6 +29,18 @@ on_timer (void *arg)
     g_print(".");
     return true;
 }
+
+C_EXTERN gboolean
+on_scale_move_slider (GtkScale *object, gdouble value, gpointer data)
+{
+    g_print("value: %g %d\n", value, (gint) value);
+    App * app = (App*) &data;
+
+    app->n_frame = (gint) value;
+
+    return false;
+}
+
 
 /* FIXME 
 static gboolean
@@ -86,36 +99,10 @@ on_draw_video (GtkWidget * widget, GdkEvent * eev, gpointer arg)
 int
 main (int argc, char *argv[])
 {
-    GtkBuilder      *builder; 
-    GtkWidget       *window, * messagedialog1;
-    GtkWidget       *drawarea;
 
     gtk_init (&argc, &argv);
 
-    builder = gtk_builder_new ();
-    gtk_builder_add_from_file (builder, "src/window.glade", NULL);
-    window = GTK_WIDGET (gtk_builder_get_object (builder, "window1"));
-    gtk_builder_connect_signals (builder, window);
-
-
-    drawarea = GTK_WIDGET (gtk_builder_get_object (builder, "drawarea1"));
-
-    // set timer for recording
-    //g_timeout_add (1000.0 / TIMER, on_timer, (void *) drawarea );
-
-    // init kinect
-    freenect * kinect = new freenect ();
-    kinect->init (0);
-    if ( kinect->get_error() ){
-        messagedialog1 = GTK_WIDGET (gtk_builder_get_object (builder, "messagedialog1"));
-        gtk_widget_activate  (messagedialog1);
-        gtk_widget_show  (messagedialog1);
-    }
-
-    g_object_unref (G_OBJECT (builder));
-        
-    gtk_widget_show (window);                
-    gtk_main ();
+    App * app = new App();
 
     return 0;
 }
