@@ -12,18 +12,22 @@ on_window_destroy (GtkObject *object, gpointer user_data)
 C_EXTERN void 
 on_rec_clicked (GtkObject *object, gpointer data)
 {
-    g_print ("rec..\n");
+    App * app = (App*) &data;
+    app->set_mode (MODE_REC);
+    g_print ("INFO: switch on record.\n");
 }
 
 C_EXTERN void 
 on_save_clicked (GtkObject *object, gpointer data)
 {
-    g_print ("save..\n");
+    App * app = (App*) &data;
+    g_print ("INFO: save project to xml.\n");
 }
 
 gboolean
 on_timer (void *arg)
 {
+    //App * app = (App*) &data;
     g_print (".");
     return true;
 }

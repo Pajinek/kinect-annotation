@@ -37,3 +37,8 @@ App::App(char * file){
     gtk_widget_show (window);                
     gtk_main ();
 }
+
+
+void App::set_mode(short _mode){
+    this->mode = _mode;
+}
