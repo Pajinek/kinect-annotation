@@ -14,26 +14,26 @@ on_window_destroy (GtkObject *object, gpointer user_data)
 C_EXTERN void 
 on_rec_clicked (GtkObject *object, gpointer data)
 {
-    g_print("rec..\n");
+    g_print ("rec..\n");
 }
 
 C_EXTERN void 
 on_save_clicked (GtkObject *object, gpointer data)
 {
-    g_print("save..\n");
+    g_print ("save..\n");
 }
 
 gboolean
 on_timer (void *arg)
 {
-    g_print(".");
+    g_print (".");
     return true;
 }
 
 C_EXTERN gboolean
 on_scale_move_slider (GtkScale *object, gdouble value, gpointer data)
 {
-    g_print("value: %g %d\n", value, (gint) value);
+    g_print ("value: %g %d\n", value, (gint) value);
     App * app = (App*) &data;
 
     app->n_frame = (gint) value;
@@ -100,9 +100,22 @@ int
 main (int argc, char *argv[])
 {
 
+    int opt;
+    char * file = NULL;
+    while( (opt =  getopt (argc, argv, "hf:") ) != EOF){
+        switch(opt){
+            case 'f':
+                file = optarg;
+                break;
+            case 'h':
+                printf ("help\n");
+        }
+    }
+
     gtk_init (&argc, &argv);
 
-    App * app = new App();
+    // init application that contain all data
+    App * app = new App (file);
 
     return 0;
 }

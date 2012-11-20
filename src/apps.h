@@ -10,12 +10,12 @@ class App {
         GtkWidget   * drawarea;
         GtkScale    * scale;
 
-        App();
+        App(char * file);
         ~App();
 };
 
 
-App::App(){
+App::App(char * file){
 
     builder = gtk_builder_new ();
     gtk_builder_add_from_file (builder, "src/window.glade", NULL);
@@ -31,6 +31,12 @@ App::App(){
 
     // set timer for recording
     //g_timeout_add (1000.0 / TIMER, on_timer, (void *) drawarea );
+    //
+
+    // load file
+    if (file != NULL) {
+        printf ("INFO: load video: %s \n", file);
+    }
 
     // init kinect
     freenect * kinect = new freenect ();
