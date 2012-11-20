@@ -1,5 +1,3 @@
-#include <gtk/gtk.h>
-#include "freenect.h"
 #include "apps.h"
 
 #define C_EXTERN    extern "C"

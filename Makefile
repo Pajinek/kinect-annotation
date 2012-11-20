@@ -6,7 +6,7 @@ LD = g++ -O2 #-DDEBUG=y
 
 # program use library gtk
 PROG_1 = annotation-gtk
-OBJECTS_1 = freenect.o gmain.o 
+OBJECTS_1 = freenect.o apps.o config.o gmain.o 
 
 # program use library gtkmm
 PROG_2 = annotation-gtkmm
@@ -31,7 +31,8 @@ CFLAGS_1=$(CFLAGS) -export-dynamic `pkg-config --cflags gtk+-2.0 gmodule-export-
 CFLAGS_2=$(CFLAGS) `pkg-config --cflags gtkmm-3.0` 
 
 
-all: $(PROG_2) $(PROG_1)
+#all: $(PROG_2) $(PROG_1)
+all: $(PROG_1)
 
 
 $(PROG_1): $(OBJECTS_1)
