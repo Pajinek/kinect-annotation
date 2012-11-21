@@ -23,15 +23,14 @@ App::App(char * file){
     // signals
     g_signal_connect (drawarea, "expose-event",
                       G_CALLBACK (on_draw_video), this );
-    gtk_widget_set_app_paintable (drawarea, true);
-    gtk_widget_set_double_buffered (drawarea, true);
+    // ??
+    //gtk_widget_set_app_paintable (drawarea, true);
+    //gtk_widget_set_double_buffered (drawarea, true);
 
     // load file
     if (file != NULL) {
         load_video(file);
     }
-
-    printf("set_timer %u\n", mode);
 
     // init kinect
     kinect = new freenect ();
@@ -50,6 +49,10 @@ App::App(char * file){
     gtk_main ();
 }
 
+App::~App(){
+    printf("TODO: free all memory\n");
+}
+
 void App::load_video(char * file){
     printf("INFO: load file %s\n", file);
 
@@ -62,16 +65,15 @@ void App::load_video(char * file){
 }
 
 void App::set_mode(gint _mode){
-    printf("set_timer %u\n", _mode);
     this->mode = _mode;
 }
-
 
 void App::play(){
 
     if ( mode == MODE_PLAY ) {
         set_mode ( MODE_PAUSE );
         gtk_button_set_label (button3, "play" );
+        g_print ("INFO: pause video.\n");
         return;
     }
     
@@ -80,20 +82,27 @@ void App::play(){
     // set timer for recording
     g_timeout_add (1000.0 / TIMER, on_timer, (void *) this );
 
+    g_print ("INFO: play video.\n");
+
 }
 
 gint App::get_mode(){
     return mode;
 }
 
+void App::scale_frame(){
+    gtk_adjustment_set_value (adjustment, n_frame);
+    if( gtk_adjustment_get_upper (adjustment) < n_frame )
+        gtk_adjustment_set_upper (adjustment, n_frame );
+}
+
 gboolean App::next_frame(){
 
     frame_rgb = cvQueryFrame ( capture ); 
     if ( frame_rgb != NULL ) {
-        // count frame
-        n_frame++;
-        gtk_adjustment_set_value (adjustment, n_frame);
-        gtk_adjustment_set_upper (adjustment, 1000. );
+        // count frames
+        n_frame ++;
+        scale_frame ();
         return true;
     } else {
         return false;

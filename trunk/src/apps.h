@@ -24,10 +24,10 @@ class App {
         gint frames_max;
         gint frames_min;
 
-        CvCapture *capture;
-        IplImage *frame_rgb;
-        IplImage *frame_depth;
-
+        CvCapture * capture;
+        IplImage  * frame_rgb;
+        IplImage  * frame_depth;
+        void scale_frame();
     public:
         gint n_frame;
 

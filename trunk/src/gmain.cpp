@@ -28,7 +28,6 @@ on_play_clicked (GtkObject *object, gpointer data)
 {
     App * app = (App*) data;
     app->play();
-    g_print ("INFO: play video.\n");
 }
 
 gboolean
@@ -139,5 +138,6 @@ main (int argc, char *argv[])
     // init application that contain all data
     App * app = new App (file);
 
+    delete app;
     return 0;
 }
