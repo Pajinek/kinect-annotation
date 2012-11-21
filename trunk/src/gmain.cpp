@@ -11,7 +11,7 @@ C_EXTERN void
 on_rec_clicked (GtkObject *object, gpointer data)
 {
     App * app = (App*) data;
-    app->set_mode ( (gint) MODE_REC );
+    app->record();
     g_print ("INFO: switch on record.\n");
 }
 
@@ -34,7 +34,7 @@ gboolean
 on_timer (gpointer data)
 {
     App * app = (App *) data;
-
+    printf("mode: %d\n", app->get_mode());
     if( app->get_mode() != MODE_PLAY ) return false;
 
     gtk_widget_queue_draw ( GTK_WIDGET (app->drawarea) );
@@ -48,10 +48,10 @@ on_timer (gpointer data)
 C_EXTERN gboolean
 on_scale_move_slider (GtkScale *object, gdouble value, gpointer data)
 {
-    g_print ("value: %g %d\n", value, (gint) value);
+    //g_print ("value: %g %d\n", value, (gint) value);
     App * app = (App*) &data;
 
-    app->n_frame = (gint) value;
+    app->set_pos_frame(value);
 
     return false;
 }

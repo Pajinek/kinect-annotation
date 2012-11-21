@@ -11,6 +11,9 @@
 #define TIMER 30
 #define C_EXTERN    extern "C"
 
+#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
+//#define CODEC       CV_FOURCC('M', 'J', 'P', 'G')
+
 gboolean 
 on_timer (gpointer arg);
 
@@ -23,11 +26,19 @@ class App {
         // limits of frames
         gint frames_max;
         gint frames_min;
+        
+        char file_rgb[32];
+        char file_depth[32];
+        char file_xml[32];
 
         CvCapture * capture;
         IplImage  * frame_rgb;
         IplImage  * frame_depth;
+        CvVideoWriter * writer_rgb;
+        CvVideoWriter * writer_depth; 
+
         void scale_frame();
+
     public:
         gint n_frame;
 
@@ -47,7 +58,9 @@ class App {
         gint get_mode();
         void load_video(char * file);
         gboolean next_frame();
+        void set_pos_frame(double value);
         void play();
+        void record();
 
         IplImage * get_image_rgb();
 };
