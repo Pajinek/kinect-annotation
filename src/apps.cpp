@@ -58,8 +58,10 @@ void App::load_video(char * file){
 
     capture = cvCaptureFromAVI( file );
     if (capture != NULL) {
-        int fps = ( int )cvGetCaptureProperty( capture, CV_CAP_PROP_FPS );
+        int fps = ( int ) cvGetCaptureProperty( capture, CV_CAP_PROP_FRAME_COUNT );
         set_mode ( (gint) MODE_PAUSE );
+        cvGrabFrame ( capture );
+        cvSetCaptureProperty( capture, CV_CAP_PROP_POS_AVI_RATIO, 0.);
         printf( "INFO: count of fps %d\n", fps );
     }
 }
@@ -86,6 +88,27 @@ void App::play(){
 
 }
 
+
+void App::record(){
+    if ( mode == MODE_REC ) {
+        cvReleaseVideoWriter( &writer_rgb );
+        cvReleaseVideoWriter( &writer_depth ); 
+        return;
+    }
+
+    set_mode ( MODE_REC );
+
+    // init new file for record
+    int timestamp = (int) time(NULL);
+    sprintf(file_rgb,"data/%d.rgb.avi", timestamp);		
+    sprintf(file_depth,"data/%d.depth.avi", timestamp);	
+    printf("INFO: create files: %s\n" 
+           "                    %s\n", file_rgb, file_depth);	
+    writer_rgb = cvCreateVideoWriter(file_rgb, CODEC , 20, cvSize(640,480),  1);
+    writer_depth = cvCreateVideoWriter(file_depth, CODEC , 20 ,cvSize(640,480), 1); 
+
+}
+
 gint App::get_mode(){
     return mode;
 }
@@ -94,6 +117,12 @@ void App::scale_frame(){
     gtk_adjustment_set_value (adjustment, n_frame);
     if( gtk_adjustment_get_upper (adjustment) < n_frame )
         gtk_adjustment_set_upper (adjustment, n_frame );
+}
+
+void App::set_pos_frame(double value){
+    printf(">> %d\n",(int) floor(value) );
+    cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, 0.); //(double) floor(value) );
+    printf("!!!!\n");
 }
 
 gboolean App::next_frame(){
