@@ -8,11 +8,12 @@
 #define MODE_PAUSE 2
 #define MODE_REC 3
 
-#define TIMER 30
+#define TIMER 20
 #define C_EXTERN    extern "C"
 
-#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
+//#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
 //#define CODEC       CV_FOURCC('M', 'J', 'P', 'G')
+#define CODEC       CV_FOURCC('D','I','V','X')
 
 gboolean 
 on_timer (gpointer arg);
@@ -34,6 +35,8 @@ class App {
         CvCapture * capture;
         IplImage  * frame_rgb;
         IplImage  * frame_depth;
+        IplImage  * frame_rgb_small;
+        IplImage  * frame_depth_small;
         CvVideoWriter * writer_rgb;
         CvVideoWriter * writer_depth; 
 

@@ -1,5 +1,6 @@
 #include "apps.h"
 
+static bool LOCKED_PAINT = false;
 
 C_EXTERN void 
 on_window_destroy (GtkObject *object, gpointer user_data)
@@ -34,15 +35,16 @@ gboolean
 on_timer (gpointer data)
 {
     App * app = (App *) data;
-    printf("mode: %d\n", app->get_mode());
-    if( app->get_mode() != MODE_PLAY ) return false;
+
+    if( app->get_mode() == MODE_PAUSE ) return false;
 
     gtk_widget_queue_draw ( GTK_WIDGET (app->drawarea) );
 
-    if (app->next_frame())
+    if (app->next_frame()) {
         return true;
-    else 
+    } else {
         return false;
+    }
 }
 
 C_EXTERN gboolean
@@ -60,6 +62,12 @@ on_scale_move_slider (GtkScale *object, gdouble value, gpointer data)
 C_EXTERN gboolean
 on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
 {
+    if(LOCKED_PAINT){
+        printf("WARNING: Slow CPU - frame losted (generate locked).\n");
+        return false;
+    }
+
+    LOCKED_PAINT = true;
 
     App * app = (App*) data;
     IplImage * cv_image = NULL;
@@ -71,11 +79,15 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
         cv_image = app->get_image_rgb ();
     }
     else {
+        LOCKED_PAINT = false;
         return false;
     }
 
 
-    if (cv_image == NULL) return true;
+    if (cv_image == NULL) {
+        LOCKED_PAINT = false;
+        return true;
+    }
  
     //convert opencv to gtk
     GdkPixbuf *pix = gdk_pixbuf_new_from_data ((guchar *) cv_image->imageData,
@@ -91,7 +103,11 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
     //gtkImg = gtk_image_new_from_pixbuf (pix);
     gdk_draw_pixbuf (object->window,
                      object->style->fg_gc[GTK_WIDGET_STATE (object)],
-                     pix, 0, 0, 0, 0, 640, 480, GDK_RGB_DITHER_NONE, 0, 0);
+                     pix, 0, 0, 0, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NONE, 0, 0);
+
+    gdk_draw_pixbuf (object->window,
+                     object->style->fg_gc[GTK_WIDGET_STATE (object)],
+                     pix, 0, 0, cv_image->width+5, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NONE, 0, 0);
 
     //gtk_widget_queue_draw(widget);
     g_object_unref (pix);
@@ -114,6 +130,7 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
     //gtk_widget_queue_draw(widget);
     g_object_unref (pix); */
 
+    LOCKED_PAINT = false;
     return true;
 } 
 
