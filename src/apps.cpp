@@ -13,6 +13,8 @@ App::App(char * file){
     capture = NULL;
 
     drawarea = GTK_WIDGET (gtk_builder_get_object (builder, "drawingarea1"));
+    frame_rgb_small = cvCreateImage(cvSize(348,250), IPL_DEPTH_8U, 3);
+    frame_depth_small = cvCreateImage(cvSize(348,250), IPL_DEPTH_8U, 3);
 
     scale = GTK_SCALE (gtk_builder_get_object (builder, "scale1"));
     adjustment = GTK_ADJUSTMENT (gtk_builder_get_object (builder, "adjustment1"));
@@ -30,6 +32,13 @@ App::App(char * file){
     // load file
     if (file != NULL) {
         load_video(file);
+    } else {
+        /* only temporary */
+        capture = cvCaptureFromCAM( -1 );
+        set_mode ( (gint) MODE_PAUSE );
+        cvGrabFrame ( capture );
+        cvSetCaptureProperty( capture, CV_CAP_PROP_CONVERT_RGB, 0.);
+
     }
 
     // init kinect
@@ -51,6 +60,8 @@ App::App(char * file){
 
 App::~App(){
     printf("TODO: free all memory\n");
+    // cvReleaseImage(&frame_depth_small);
+    // cvReleaseImage(&frame_rgb_small);
 }
 
 void App::load_video(char * file){
@@ -130,6 +141,13 @@ gboolean App::next_frame(){
     frame_rgb = cvQueryFrame ( capture ); 
     if ( frame_rgb != NULL ) {
         // count frames
+
+        cvResize(frame_rgb, frame_rgb_small);
+
+        if ( mode == MODE_REC ) {
+            cvWriteFrame( writer_depth, frame_rgb);
+        }
+
         n_frame ++;
         scale_frame ();
         return true;
@@ -139,5 +157,5 @@ gboolean App::next_frame(){
 }
 
 IplImage * App::get_image_rgb(){
-    return frame_rgb;
+    return frame_rgb_small;
 }
