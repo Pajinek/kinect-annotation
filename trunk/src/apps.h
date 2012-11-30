@@ -8,7 +8,6 @@
 #define MODE_PAUSE 2
 #define MODE_REC 3
 
-#define TIMER 20
 #define C_EXTERN    extern "C"
 
 //#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
@@ -28,6 +27,7 @@ class App {
         gint frames_max;
         gint frames_min;
         
+        // file path of save video and xml
         char file_rgb[32];
         char file_depth[32];
         char file_xml[32];
@@ -37,6 +37,9 @@ class App {
         IplImage  * frame_depth;
         IplImage  * frame_rgb_small;
         IplImage  * frame_depth_small;
+        u_int frame_fps;
+        u_int frame_width;
+        u_int frame_height;
         CvVideoWriter * writer_rgb;
         CvVideoWriter * writer_depth; 
 
@@ -60,6 +63,7 @@ class App {
         void set_mode(gint _mode);
         gint get_mode();
         void load_video(char * file);
+        void set_param_video();
         gboolean next_frame();
         void set_pos_frame(double value);
         void play();
