@@ -13,8 +13,8 @@ App::App(char * file){
     capture = NULL;
 
     drawarea = GTK_WIDGET (gtk_builder_get_object (builder, "drawingarea1"));
-    frame_rgb_small = cvCreateImage(cvSize(348,250), IPL_DEPTH_8U, 3);
-    frame_depth_small = cvCreateImage(cvSize(348,250), IPL_DEPTH_8U, 3);
+    frame_rgb_small = cvCreateImage(cvSize(348, 250), IPL_DEPTH_8U, 3);
+    frame_depth_small = cvCreateImage(cvSize(348, 250), IPL_DEPTH_8U, 3);
 
     scale = GTK_SCALE (gtk_builder_get_object (builder, "scale1"));
     adjustment = GTK_ADJUSTMENT (gtk_builder_get_object (builder, "adjustment1"));
@@ -38,7 +38,8 @@ App::App(char * file){
         set_mode ( (gint) MODE_PAUSE );
         cvGrabFrame ( capture );
         cvSetCaptureProperty( capture, CV_CAP_PROP_CONVERT_RGB, 0.);
-
+        int fps = cvGetCaptureProperty( capture, CV_CAP_PROP_FPS);
+        printf( "INFO: count of fps %d\n", fps );
     }
 
     // init kinect
@@ -54,6 +55,8 @@ App::App(char * file){
 
     g_object_unref (G_OBJECT (builder));
         
+    set_param_video();
+
     gtk_widget_show (window);                
     gtk_main ();
 }
@@ -62,6 +65,23 @@ App::~App(){
     printf("TODO: free all memory\n");
     // cvReleaseImage(&frame_depth_small);
     // cvReleaseImage(&frame_rgb_small);
+}
+
+void App::set_param_video(){
+    if (capture != NULL) {
+        int fps = ( int ) cvGetCaptureProperty( capture, CV_CAP_PROP_FRAME_COUNT );
+        printf( "INFO: count of fps %d\n", fps );
+    } else {
+        printf("Error: capture is NULL");
+    }
+
+    frame_width = 640;
+    frame_height = 480;
+// 640x480  15 fps 1900 kbps 
+// 320x240  30 fps  900 kbps 
+// 160x120  30 fps 675 kbps 
+
+    frame_fps = 15;
 }
 
 void App::load_video(char * file){
@@ -93,7 +113,7 @@ void App::play(){
     gtk_button_set_label (button3, "pause" );
     set_mode( MODE_PLAY );
     // set timer for recording
-    g_timeout_add (1000.0 / TIMER, on_timer, (void *) this );
+    g_timeout_add (1000.0 / frame_fps, on_timer, (void *) this );
 
     g_print ("INFO: play video.\n");
 
@@ -115,8 +135,8 @@ void App::record(){
     sprintf(file_depth,"data/%d.depth.avi", timestamp);	
     printf("INFO: create files: %s\n" 
            "                    %s\n", file_rgb, file_depth);	
-    writer_rgb = cvCreateVideoWriter(file_rgb, CODEC , 20, cvSize(640,480),  1);
-    writer_depth = cvCreateVideoWriter(file_depth, CODEC , 20 ,cvSize(640,480), 1); 
+    writer_rgb = cvCreateVideoWriter(file_rgb, CODEC , frame_fps, cvSize(frame_width, frame_height),  1);
+    writer_depth = cvCreateVideoWriter(file_depth, CODEC , frame_fps, cvSize(frame_width, frame_width), 1); 
 
 }
 
@@ -125,14 +145,14 @@ gint App::get_mode(){
 }
 
 void App::scale_frame(){
-    gtk_adjustment_set_value (adjustment, n_frame);
+   /* gtk_adjustment_set_value (adjustment, n_frame);
     if( gtk_adjustment_get_upper (adjustment) < n_frame )
-        gtk_adjustment_set_upper (adjustment, n_frame );
+        gtk_adjustment_set_upper (adjustment, n_frame ); */
 }
 
 void App::set_pos_frame(double value){
     printf(">> %d\n",(int) floor(value) );
-    cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, 0.); //(double) floor(value) );
+    //cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, 0.); //(double) floor(value) );
     printf("!!!!\n");
 }
 
@@ -145,11 +165,11 @@ gboolean App::next_frame(){
         cvResize(frame_rgb, frame_rgb_small);
 
         if ( mode == MODE_REC ) {
-            cvWriteFrame( writer_depth, frame_rgb);
+            cvWriteFrame( writer_rgb, frame_rgb);
         }
 
         n_frame ++;
-        scale_frame ();
+        //scale_frame ();
         return true;
     } else {
         return false;
