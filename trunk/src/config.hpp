@@ -8,6 +8,7 @@ class Config {
     char * path_rgb;
     char * path_depth;
 
+public:
     Config( char * filename);
     ~Config();
 

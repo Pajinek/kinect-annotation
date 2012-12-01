@@ -29,6 +29,8 @@ App::App(char * file){
     //gtk_widget_set_app_paintable (drawarea, true);
     //gtk_widget_set_double_buffered (drawarea, true);
 
+    config = new Config("config.xml");
+
     // load file
     if (file != NULL) {
         load_video(file);
@@ -52,10 +54,10 @@ App::App(char * file){
         gtk_widget_activate  (messagedialog1);
         gtk_widget_show  (messagedialog1); */
     }
+    set_param_video();
 
     g_object_unref (G_OBJECT (builder));
         
-    set_param_video();
 
     gtk_widget_show (window);                
     gtk_main ();

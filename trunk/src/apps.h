@@ -1,6 +1,7 @@
 
 #include <gtk/gtk.h>
 #include "freenect.h"
+#include "config.hpp"
 #include <cv.h>
 #include <highgui.h> // contain function for loading video
 
@@ -56,6 +57,7 @@ class App {
         GtkButton   * button3;
         GtkAdjustment * adjustment;
         freenect    * kinect;
+        Config      * config;
 
         App(char * file);
         ~App();

@@ -10,7 +10,7 @@ OBJECTS_1 = freenect.o apps.o config.o gmain.o
 
 # program use library gtkmm
 PROG_2 = annotation-gtkmm
-OBJECTS_2 = freenect.o ggmain.o 
+OBJECTS_2 = freenect.o config.o ggmain.o 
 
 # Kinect library
 LIBS = `pkg-config libfreenect --libs` -lm -lusb-1.0 -lfreenect -Wunknown-pragmas
