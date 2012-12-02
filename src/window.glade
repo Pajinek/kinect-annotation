@@ -31,8 +31,10 @@
     <property name="can_focus">False</property>
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_STRUCTURE_MASK</property>
     <property name="border_width">10</property>
+    <property name="title" translatable="yes">Kinect Annotation - GTK</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
+    <property name="icon">logo.png</property>
     <signal name="destroy" handler="on_window_destroy" swapped="no"/>
     <child>
       <object class="GtkFixed" id="fixed1">
@@ -93,7 +95,7 @@
             <property name="show_fill_level">True</property>
             <property name="restrict_to_fill_level">False</property>
             <property name="fill_level">100</property>
-            <property name="round_digits">1</property>
+            <property name="round_digits">0</property>
             <property name="value_pos">bottom</property>
             <signal name="change-value" handler="on_scale_move_slider" swapped="no"/>
           </object>
