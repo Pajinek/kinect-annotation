@@ -21,6 +21,10 @@ on_timer (gpointer arg);
 C_EXTERN gboolean
 on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data);
 
+C_EXTERN gboolean
+on_scale_move_slider (GtkScale * object, gdouble value, gpointer data);
+
+
 class App {
     private:
         gint mode;
@@ -46,6 +50,10 @@ class App {
 
         void scale_frame();
 
+        GtkButton   * button_rec;
+        GtkButton   * button_play;
+
+        bool is_move_pos_video;
     public:
         gint n_frame;
 
@@ -54,7 +62,6 @@ class App {
         GtkWidget   * messagedialog1;
         GtkWidget   * drawarea;
         GtkScale    * scale;
-        GtkButton   * button3;
         GtkAdjustment * adjustment;
         freenect    * kinect;
         Config      * config;
@@ -74,4 +81,6 @@ class App {
         IplImage * get_image_rgb();
 };
 
+// fix problem with reference this
+static App * app;
 

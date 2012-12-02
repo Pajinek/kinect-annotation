@@ -57,29 +57,27 @@ on_timer (gpointer data)
 }
 
 C_EXTERN gboolean
-on_scale_move_slider (GtkScale *object, gdouble value, gpointer data)
+on_scale_move_slider (GtkScale * object, gdouble value, gpointer data)
 {
-    //g_print ("value: %g %d\n", value, (gint) value);
-    App * app = (App*) &data;
-
-    //app->set_pos_frame(value);
+    // App * app = (App*) &data;
+    // printf(">> %g %d\n",  value, app->n_frame );
+    app->set_pos_frame(value);
 
     return false;
 }
-
 
 C_EXTERN gboolean
 on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
 {
 
-    App * app = (App*) data;
+    app = (App*) data;
     IplImage * cv_image = NULL;
 
     if ( app->get_mode() == MODE_REC ) {
         //cv_image = app->kinect->get_image_rgb ();
         cv_image = app->get_image_rgb ();
     }
-    else if ( app->get_mode() == MODE_PLAY) {
+    else {
         cv_image = app->get_image_rgb ();
     }
 
