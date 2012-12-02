@@ -53,6 +53,8 @@ class App {
         GtkButton   * button_rec;
         GtkButton   * button_play;
 
+        GtkTreeView * list;
+
         bool is_move_pos_video;
     public:
         gint n_frame;
@@ -81,6 +83,6 @@ class App {
         IplImage * get_image_rgb();
 };
 
-// fix problem with reference this
+// fix problem with reference on pointer this
 static App * app;
 
