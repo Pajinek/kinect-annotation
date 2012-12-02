@@ -59,6 +59,7 @@ on_timer (gpointer data)
 C_EXTERN gboolean
 on_scale_move_slider (GtkScale * object, gdouble value, gpointer data)
 {
+    // FIXME apps is bad value
     // App * app = (App*) &data;
     // printf(">> %g %d\n",  value, app->n_frame );
     app->set_pos_frame(value);
@@ -100,17 +101,22 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
     //gtkImg = gtk_image_new_from_pixbuf (pix);
     gdk_draw_pixbuf (object->window,
                      object->style->fg_gc[GTK_WIDGET_STATE (object)],
-                     pix, 0, 0, 0, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NONE, 0, 0);
+                     pix, 0, 0, 0, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NORMAL, 0, 0); // GDK_RGB_DITHER_NONE
 
     gdk_draw_pixbuf (object->window,
                      object->style->fg_gc[GTK_WIDGET_STATE (object)],
-                     pix, 0, 0, cv_image->width+2, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NONE, 0, 0);
+                     pix, 0, 0, cv_image->width+2, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NORMAL, 0, 0);
 
     //gtk_widget_queue_draw(widget);
     g_object_unref (pix);
 
     return true;
 } 
+
+int help(){
+    printf ("TODO: help\n");
+    return 0;
+}
 
 int
 main (int argc, char *argv[])
@@ -125,8 +131,12 @@ main (int argc, char *argv[])
                 file = optarg;
                 break;
             case 'h':
-                printf ("help\n");
+            default:
+                return help();
         }
+    }
+    if (argc > 1 && file == NULL) {
+        return help();
     }
 
     gtk_init (&argc, &argv);
