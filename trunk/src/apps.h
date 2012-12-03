@@ -114,6 +114,7 @@ class App {
         u_int list_add_new(u_int start, u_int end, gchar * type);
 
         IplImage * get_image_rgb();
+        IplImage * get_image_depth();
 };
 
 // fix problem with reference on pointer this
