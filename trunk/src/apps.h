@@ -24,6 +24,27 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data);
 C_EXTERN gboolean
 on_scale_move_slider (GtkScale * object, gdouble value, gpointer data);
 
+typedef struct {
+    u_int b;
+    u_int e;
+    gchar type[64]; // TODO - it's only temporary limit for string
+} list_item;
+
+
+class AnnList {
+
+        std::map<u_int, list_item> list;
+        u_int last_index;
+
+    public:
+        AnnList();
+        ~AnnList();
+        u_int add(u_int begin, u_int end, gchar * type);
+        void update(u_int index, u_int begin, u_int end, gchar * type);
+        void remove(u_int index);
+        void debug();
+};
+
 
 class App {
     private:
@@ -55,6 +76,7 @@ class App {
 
         GtkTreeView * list;
         GtkListStore * store;
+        AnnList * anns;
 
         bool is_move_pos_video;
 
@@ -90,4 +112,5 @@ class App {
 
 // fix problem with reference on pointer this
 static App * app;
+
 
