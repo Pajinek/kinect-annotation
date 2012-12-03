@@ -92,32 +92,39 @@ App::App(char * file){
     config = new Config("config.xml");
     anns = new AnnList();
 
+    // init kinect
+    kinect = new freenect ();
+
+    kinect->init (0);
+
     // load video file
     if (file != NULL) {
         load_video(file);
-    } else {
-        /* only temporary */
+    } 
+
+    if ( kinect->get_error() ){
+        // TODO: show warning message
+        printf ("WARING: finect not init.\n");
+        
+        /* messagedialog1 = GTK_WIDGET (gtk_builder_get_object (builder, "messagedialog1"));
+        gtk_widget_activate  (messagedialog1);
+        gtk_widget_show  (messagedialog1); */
+    
+        // feedback for video
         capture = cvCaptureFromCAM( -1 );
         set_mode ( (gint) MODE_PAUSE );
         cvGrabFrame ( capture );
         cvSetCaptureProperty( capture, CV_CAP_PROP_CONVERT_RGB, 1.);
         int fps = cvGetCaptureProperty( capture, CV_CAP_PROP_FPS);
         printf( "INFO: count of fps %d\n", fps );
+
+        set_param_video();
+    } else {
+        // params for kinect
+        frame_width = 640;
+        frame_height = 480;
+        frame_fps = 15;
     }
-
-    // init kinect
-    kinect = new freenect ();
-
-    kinect->init (0);
-    if ( kinect->get_error() ){
-        // TODO: show warning message
-        
-        /* messagedialog1 = GTK_WIDGET (gtk_builder_get_object (builder, "messagedialog1"));
-        gtk_widget_activate  (messagedialog1);
-        gtk_widget_show  (messagedialog1); */
-    }
-    set_param_video();
-
 
     // create table column
     GtkCellRenderer     *renderer;
@@ -237,7 +244,7 @@ void App::record(){
     printf("INFO: create files: %s\n" 
            "                    %s\n", file_rgb, file_depth);	
     writer_rgb = cvCreateVideoWriter(file_rgb, CODEC , frame_fps, cvSize(frame_width, frame_height),  1 /* is color */ );
-    writer_depth = cvCreateVideoWriter(file_depth, CODEC , frame_fps, cvSize(frame_width, frame_width), 1 /* is color */ ); 
+    writer_depth = cvCreateVideoWriter(file_depth, CODEC , frame_fps, cvSize(frame_width, frame_height), 1 /* is color */ ); 
 
     gtk_button_set_label (button_rec, "stop rec" );
 }
@@ -271,15 +278,27 @@ void App::set_pos_frame(double value){
     }
 }
 
-gboolean App::next_frame(){
+gboolean App::next_frame (){
 
-    frame_rgb = cvQueryFrame ( capture ); 
+    if ( kinect->get_error () ){   
+        // camera for feedback
+        frame_rgb = cvQueryFrame ( capture ); 
+        // cvCopy(frame_rgb, frame_depth);
+        frame_depth = frame_rgb;
+    } else {
+        kinect->reload ();
+        frame_rgb = kinect->get_image_rgb ();
+        frame_depth = kinect->get_image_depth_rgb ();
+    }
+
     if ( frame_rgb != NULL ) {
 
         cvResize(frame_rgb, frame_rgb_small);
+        cvResize(frame_depth, frame_depth_small);
 
         if ( mode == MODE_REC ) {
             cvWriteFrame( writer_rgb, frame_rgb);
+            cvWriteFrame( writer_depth, frame_depth);
         }
 
         // count frames
@@ -293,6 +312,10 @@ gboolean App::next_frame(){
 
 IplImage * App::get_image_rgb(){
     return frame_rgb_small;
+}
+
+IplImage * App::get_image_depth(){
+    return frame_depth_small;
 }
 
 u_int App::list_add_new(u_int start, u_int end, gchar * type){

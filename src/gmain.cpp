@@ -127,16 +127,12 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
 
     app = (App*) data;
     IplImage * cv_image = NULL;
+    IplImage * cv_image2 = NULL;
 
-    if ( app->get_mode() == MODE_REC ) {
-        //cv_image = app->kinect->get_image_rgb ();
-        cv_image = app->get_image_rgb ();
-    }
-    else {
-        cv_image = app->get_image_rgb ();
-    }
+    cv_image = app->get_image_rgb ();
+    cv_image2 = app->get_image_depth ();
 
-    if (cv_image == NULL) {
+    if (cv_image == NULL || cv_image2 == NULL ) {
         printf ("ERROR: Image is NULL\n");
         return true;
     }
@@ -157,6 +153,17 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data)
                      object->style->fg_gc[GTK_WIDGET_STATE (object)],
                      pix, 0, 0, 0, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NORMAL, 0, 0); // GDK_RGB_DITHER_NONE
 
+    g_object_unref (pix);
+
+    pix = gdk_pixbuf_new_from_data ((guchar *) cv_image2->imageData,
+                                               GDK_COLORSPACE_RGB,
+                                               FALSE,
+                                               cv_image2->depth,
+                                               cv_image2->width,
+                                               cv_image2->height,
+                                               cv_image2->widthStep,
+                                               NULL,
+                                               NULL);
     gdk_draw_pixbuf (object->window,
                      object->style->fg_gc[GTK_WIDGET_STATE (object)],
                      pix, 0, 0, cv_image->width+2, 0, cv_image->width, cv_image->height, GDK_RGB_DITHER_NORMAL, 0, 0);

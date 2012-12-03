@@ -43,9 +43,9 @@ filter_distance (IplImage * img, int distance)
 
 
 int
-    freenect::filter_from = 512;
+    freenect::filter_from = 0;
 int
-    freenect::filter_to = 798;
+    freenect::filter_to = 0;
 
 freenect::freenect (void)
 {
@@ -184,8 +184,9 @@ freenect::depth_cb (freenect_device * dev, void *v_depth, uint32_t timestamp)
           int pval = t_gamma[depth[i]];
           int lb = pval & 0xff;
           int tt = pval >> 8;
-          if (pval < filter_from || pval > filter_to)
+          if ((filter_from > 0 || filter_to > 0 ) && (pval < filter_from || pval > filter_to)){
               tt = 6;           // temporary
+          }
           switch (tt /* >>8 */ )
             {
             case 0:
