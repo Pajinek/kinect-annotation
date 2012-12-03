@@ -54,8 +54,10 @@ class App {
         GtkButton   * button_play;
 
         GtkTreeView * list;
+        GtkListStore * store;
 
         bool is_move_pos_video;
+
     public:
         gint n_frame;
 
@@ -79,6 +81,9 @@ class App {
         void set_pos_frame(double value);
         void play();
         void record();
+
+        // list
+        u_int list_add_new(u_int start, u_int end, gchar * type);
 
         IplImage * get_image_rgb();
 };
