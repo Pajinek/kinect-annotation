@@ -57,7 +57,7 @@ C_EXTERN void
 on_click_row (GtkObject *object, gpointer data){
 
   GtkTreeIter iter;
-  GtkTreeModel *model;
+  GtkTreeModel * model;
   guint value0;
   guint value1;
   guint value2;
@@ -70,7 +70,10 @@ on_click_row (GtkObject *object, gpointer data){
     gtk_tree_model_get(model, &iter, 1, &value1,  -1);
     gtk_tree_model_get(model, &iter, 2, &value2,  -1);
     gtk_tree_model_get(model, &iter, 3, &value3,  -1);
+
     printf("row %d: %d %d %s\n", value0, value1, value2, value3) ;
+
+    app->anns->set_active(value0);
   }
 }
 

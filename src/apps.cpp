@@ -307,6 +307,7 @@ u_int App::list_add_new(u_int start, u_int end, gchar * type){
 
 AnnList::AnnList(){
     last_index = 0;
+    activate = 0;
 }
 
 AnnList::~AnnList(){
@@ -331,6 +332,11 @@ void AnnList::remove(u_int index){
 
 }
 
+void AnnList::set_active(u_int index){
+    activate = index;
+
+    debug();
+}
 
 void AnnList::debug(){
   
@@ -338,6 +344,8 @@ void AnnList::debug(){
 
     // show content:
     printf ("===========================\n");
+    printf ("active: %d\n", activate);
+    printf ("---------------------------\n");
     for ( it=list.begin() ; it != list.end(); it++ ){
         printf("%d | %d | %d | %s \n", (*it).first, (*it).second.b, (*it).second.e, (*it).second.type );
     }
