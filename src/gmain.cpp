@@ -32,6 +32,21 @@ on_play_clicked (GtkObject *object, gpointer data)
     app->play();
 }
 
+
+C_EXTERN void
+on_mouse_down (GtkObject *object, gpointer data)
+{
+    App * app = (App*) data;
+    printf("INFO: mouse down\n");
+}
+
+C_EXTERN void
+on_mouse_up (GtkObject *object, gpointer data)
+{
+    App * app = (App*) data;
+    printf("INFO: mouse up\n");
+}
+
 C_EXTERN void
 on_click_row (GtkObject *object, gpointer data){
 

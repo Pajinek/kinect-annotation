@@ -70,6 +70,7 @@ App::App(char * file){
     gtk_widget_set_events (drawarea, GDK_EXPOSURE_MASK
                          | GDK_LEAVE_NOTIFY_MASK
                          | GDK_BUTTON_PRESS_MASK
+                         | GDK_BUTTON_RELEASE_MASK 
                          | GDK_POINTER_MOTION_MASK
                          | GDK_POINTER_MOTION_HINT_MASK);
     // is it need ?
@@ -108,9 +109,8 @@ App::App(char * file){
         
 
     //temporary
-    GtkListStore *store;
     GtkTreeIter iter;
-    const gchar *str = "test";
+    gchar *str = "test";
 
 
     // create table column
@@ -136,11 +136,10 @@ App::App(char * file){
     store = gtk_list_store_new(4, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING);
     gtk_tree_view_set_model(GTK_TREE_VIEW(list), GTK_TREE_MODEL(store));
 
-    gtk_list_store_append(store, &iter);
-    gtk_list_store_set(store, &iter, 0, 1, 1, 20, 2, 20, 3, str, -1);
+    list_add_new(1, 10, str);
+    list_add_new(10, 15, str);
+    list_add_new(15, 19, str);
 
-    gtk_list_store_append(store, &iter);
-    gtk_list_store_set(store, &iter, 0, 2, 1, 15, 2, 20, 3, str, -1);
 
     //gtk_tree_model_foreach(GTK_TREE_MODEL(store), foreach_func, NULL);
 
@@ -290,4 +289,13 @@ gboolean App::next_frame(){
 
 IplImage * App::get_image_rgb(){
     return frame_rgb_small;
+}
+
+u_int App::list_add_new(u_int start, u_int end, gchar * type){
+    GtkTreeIter iter;
+    u_int index = 1;
+
+    gtk_list_store_append(store, &iter);
+    gtk_list_store_set(store, &iter, 0, index, 1, start, 2, end, 3, type, -1);
+
 }
