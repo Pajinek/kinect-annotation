@@ -25,11 +25,32 @@ on_save_clicked (GtkObject *object, gpointer data)
 }
 
 
-C_EXTERN void 
+C_EXTERN void
 on_play_clicked (GtkObject *object, gpointer data)
 {
     App * app = (App*) data;
     app->play();
+}
+
+C_EXTERN void
+on_click_row (GtkObject *object, gpointer data){
+
+  GtkTreeIter iter;
+  GtkTreeModel *model;
+  guint value0;
+  guint value1;
+  guint value2;
+  gchar * value3;
+
+  if (gtk_tree_selection_get_selected(
+      GTK_TREE_SELECTION(object), &model, &iter)) {
+
+    gtk_tree_model_get(model, &iter, 0, &value0,  -1);
+    gtk_tree_model_get(model, &iter, 1, &value1,  -1);
+    gtk_tree_model_get(model, &iter, 2, &value2,  -1);
+    gtk_tree_model_get(model, &iter, 3, &value3,  -1);
+    printf("row %d: %d %d %s\n", value0, value1, value2, value3) ;
+  }
 }
 
 gboolean

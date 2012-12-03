@@ -118,31 +118,35 @@ App::App(char * file){
     renderer = gtk_cell_renderer_text_new ();
 
     col = gtk_tree_view_column_new_with_attributes (
-        "   Begin (FPS)   ", renderer, "text", 0, NULL);
+        " Id ", renderer, "text", 0, NULL);
+
+    gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
+    col = gtk_tree_view_column_new_with_attributes (
+        "   Begin (FPS)   ", renderer, "text", 1, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
 
     col = gtk_tree_view_column_new_with_attributes (
-        "   End (FPS)   ", renderer, "text", 1, NULL);
+        "   End (FPS)   ", renderer, "text", 2, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
 
     col = gtk_tree_view_column_new_with_attributes (
-        "   Type", renderer, "text", 2, NULL);
+        "   Type", renderer, "text", 3, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
 
-    store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    store = gtk_list_store_new(4, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING);
     gtk_tree_view_set_model(GTK_TREE_VIEW(list), GTK_TREE_MODEL(store));
 
-    for(int i = 0; i < 40;  i++){
     gtk_list_store_append(store, &iter);
-    gtk_list_store_set(store, &iter, 0, "0", 1, "20", 2, str, -1);
+    gtk_list_store_set(store, &iter, 0, 1, 1, 20, 2, 20, 3, str, -1);
 
     gtk_list_store_append(store, &iter);
-    gtk_list_store_set(store, &iter, 0, "10", 1, "15", 2, str, -1);
+    gtk_list_store_set(store, &iter, 0, 2, 1, 15, 2, 20, 3, str, -1);
 
-}
+    //gtk_tree_model_foreach(GTK_TREE_MODEL(store), foreach_func, NULL);
 
-    gtk_tree_model_foreach(GTK_TREE_MODEL(store), foreach_func, NULL);
-
+    // GtkTreeSelection *selection; 
+    // selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
+    // g_signal_connect(selection, "changed", G_CALLBACK(on_click_row), label);
 
     gtk_widget_show (window);                
     gtk_main ();
