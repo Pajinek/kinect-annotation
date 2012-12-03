@@ -35,6 +35,7 @@ class AnnList {
 
         std::map<u_int, list_item> list;
         u_int last_index;
+        u_int activate;
 
     public:
         AnnList();
@@ -43,6 +44,7 @@ class AnnList {
         void update(u_int index, u_int begin, u_int end, gchar * type);
         void remove(u_int index);
         void debug();
+        void set_active(u_int index);
 };
 
 
@@ -76,12 +78,12 @@ class App {
 
         GtkTreeView * list;
         GtkListStore * store;
-        AnnList * anns;
 
         bool is_move_pos_video;
 
     public:
         gint n_frame;
+        AnnList * anns;
 
         GtkBuilder  * builder; 
         GtkWidget   * window;
