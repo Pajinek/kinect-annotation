@@ -58,6 +58,10 @@ App::App(char * file){
     // buttons
     button_play = GTK_BUTTON (gtk_builder_get_object (builder, "button3"));
     button_rec = GTK_BUTTON (gtk_builder_get_object (builder, "button1"));
+    button_list_save = GTK_BUTTON (gtk_builder_get_object (builder, "button4"));
+    button_list_e1 = GTK_ENTRY (gtk_builder_get_object (builder, "entry1"));
+    button_list_e2 = GTK_ENTRY (gtk_builder_get_object (builder, "entry2"));
+    button_list_e3 = GTK_ENTRY (gtk_builder_get_object (builder, "entry3"));
 
     // treeview - list for annotations
     list = GTK_TREE_VIEW (gtk_builder_get_object (builder, "treeview1"));

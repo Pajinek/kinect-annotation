@@ -173,6 +173,35 @@
             <property name="y">331</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkButton" id="button4">
+            <property name="label" translatable="yes">update</property>
+            <property name="width_request">60</property>
+            <property name="height_request">24</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="on_active_row_save" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">529</property>
+            <property name="y">550</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button5">
+            <property name="label" translatable="yes">-</property>
+            <property name="width_request">30</property>
+            <property name="height_request">24</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="x">600</property>
+            <property name="y">550</property>
+          </packing>
+        </child>
       </object>
     </child>
   </object>

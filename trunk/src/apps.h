@@ -75,6 +75,10 @@ class App {
 
         GtkButton   * button_rec;
         GtkButton   * button_play;
+        GtkButton   * button_list_save;
+        GtkEntry    * button_list_e1;
+        GtkEntry    * button_list_e2;
+        GtkEntry    * button_list_e3;
 
         GtkTreeView * list;
         GtkListStore * store;
