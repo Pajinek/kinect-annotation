@@ -33,6 +33,7 @@ gboolean
 
 App::App(char * file){
 
+    // load data from glade xml
     builder = gtk_builder_new ();
     gtk_builder_add_from_file (builder, "src/window.glade", NULL);
     window = GTK_WIDGET (gtk_builder_get_object (builder, "window1"));
@@ -42,25 +43,32 @@ App::App(char * file){
     n_frame = 0;
     capture = NULL;
     is_move_pos_video = false;
+    // temporary value for create columns
+	GtkTreeViewColumn * col;
 
+    // drawarea
     drawarea = GTK_WIDGET (gtk_builder_get_object (builder, "drawingarea1"));
     frame_rgb_small = cvCreateImage(cvSize(348, 250), IPL_DEPTH_8U, 3);
     frame_depth_small = cvCreateImage(cvSize(348, 250), IPL_DEPTH_8U, 3);
 
+    // scale for moving in video
     scale = GTK_SCALE (gtk_builder_get_object (builder, "scale1"));
     adjustment = GTK_ADJUSTMENT (gtk_builder_get_object (builder, "adjustment1"));
+
+    // buttons
     button_play = GTK_BUTTON (gtk_builder_get_object (builder, "button3"));
     button_rec = GTK_BUTTON (gtk_builder_get_object (builder, "button1"));
+
+    // treeview - list for annotations
     list = GTK_TREE_VIEW (gtk_builder_get_object (builder, "treeview1"));
 
-	GtkTreeViewColumn * col;
 
-    // signals
+    // signals for drawing
     g_signal_connect (drawarea, "expose-event",
                       G_CALLBACK (on_draw_video), this );
 
 /*  Events for drawing
- *  gtk_signal_connect (GTK_OBJECT(drawarea),"configure_event",
+    gtk_signal_connect (GTK_OBJECT(drawarea),"configure_event",
                       (GtkSignalFunc) on_draw_video, NULL);
     gtk_signal_connect (GTK_OBJECT (drawarea), "motion_notify_event",
                       (GtkSignalFunc) on_draw_video, NULL);
@@ -78,8 +86,9 @@ App::App(char * file){
     gtk_widget_set_double_buffered (drawarea, true);
 
     config = new Config("config.xml");
+    anns = new AnnList();
 
-    // load file
+    // load video file
     if (file != NULL) {
         load_video(file);
     } else {
@@ -97,20 +106,13 @@ App::App(char * file){
 
     kinect->init (0);
     if ( kinect->get_error() ){
-        // FIXME: swo warning message
+        // TODO: show warning message
+        
         /* messagedialog1 = GTK_WIDGET (gtk_builder_get_object (builder, "messagedialog1"));
         gtk_widget_activate  (messagedialog1);
         gtk_widget_show  (messagedialog1); */
     }
     set_param_video();
-
-    gtk_builder_connect_signals (builder, (void *) this);
-    g_object_unref (G_OBJECT (builder));
-        
-
-    //temporary
-    GtkTreeIter iter;
-    gchar *str = "test";
 
 
     // create table column
@@ -136,16 +138,14 @@ App::App(char * file){
     store = gtk_list_store_new(4, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING);
     gtk_tree_view_set_model(GTK_TREE_VIEW(list), GTK_TREE_MODEL(store));
 
-    list_add_new(1, 10, str);
-    list_add_new(10, 15, str);
-    list_add_new(15, 19, str);
-
-
     //gtk_tree_model_foreach(GTK_TREE_MODEL(store), foreach_func, NULL);
 
     // GtkTreeSelection *selection; 
     // selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
     // g_signal_connect(selection, "changed", G_CALLBACK(on_click_row), label);
+    //
+    gtk_builder_connect_signals (builder, (void *) this);
+    g_object_unref (G_OBJECT (builder));
 
     gtk_widget_show (window);                
     gtk_main ();
@@ -293,9 +293,55 @@ IplImage * App::get_image_rgb(){
 
 u_int App::list_add_new(u_int start, u_int end, gchar * type){
     GtkTreeIter iter;
-    u_int index = 1;
+    u_int index = anns->add( start, end, type );
 
     gtk_list_store_append(store, &iter);
     gtk_list_store_set(store, &iter, 0, index, 1, start, 2, end, 3, type, -1);
+
+    anns->debug();
+}
+
+
+
+// list
+
+AnnList::AnnList(){
+    last_index = 0;
+}
+
+AnnList::~AnnList(){
+
+}
+
+u_int AnnList::add(u_int begin, u_int end, gchar * type){
+    list_item item;
+    item.b = begin;
+    item.e = end;
+    strcpy(item.type, type);
+
+    list[last_index] =  item; 
+    return ++last_index;
+}
+
+void AnnList::update(u_int index, u_int begin, u_int end, gchar * type){
+
+}
+
+void AnnList::remove(u_int index){
+
+}
+
+
+void AnnList::debug(){
+  
+    std::map<u_int, list_item>::iterator it;
+
+    // show content:
+    printf ("===========================\n");
+    for ( it=list.begin() ; it != list.end(); it++ ){
+        printf("%d | %d | %d | %s \n", (*it).first, (*it).second.b, (*it).second.e, (*it).second.type );
+    }
+    printf ("===========================\n");
+    
 
 }

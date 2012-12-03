@@ -32,19 +32,25 @@ on_play_clicked (GtkObject *object, gpointer data)
     app->play();
 }
 
-
+static int mouse_event_start;
 C_EXTERN void
 on_mouse_down (GtkObject *object, gpointer data)
 {
-    App * app = (App*) data;
+    // FIXME
+    // App * app = (App*) data;
     printf("INFO: mouse down\n");
+    mouse_event_start = app->n_frame;
 }
 
 C_EXTERN void
 on_mouse_up (GtkObject *object, gpointer data)
 {
-    App * app = (App*) data;
-    printf("INFO: mouse up\n");
+    // FIXME
+    // App * app = (App*) data;
+    printf("INFO: mouse up %u %u\n", mouse_event_start, app->n_frame);
+
+    // add value to list
+    app->list_add_new(mouse_event_start, app->n_frame, (gchar *) "none");
 }
 
 C_EXTERN void
@@ -83,12 +89,13 @@ on_timer (gpointer data)
 
     if (! app->next_frame()) {
         printf("WARNING: frame lost - timer\n");
+        LOCKED_PAINT = false;
+        return false;
     }
-
-    LOCKED_PAINT = false;
 
     gtk_widget_queue_draw ( GTK_WIDGET (app->drawarea) );
 
+    LOCKED_PAINT = false;
     return true;
 }
 
