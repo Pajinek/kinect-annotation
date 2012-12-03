@@ -24,6 +24,14 @@ on_save_clicked (GtkObject *object, gpointer data)
     g_print ("INFO: save project to xml.\n");
 }
 
+C_EXTERN void 
+on_active_row_save (GtkObject *object, gpointer data)
+{
+    App * app = (App*) data;
+    g_print ("INFO: update active row.\n");
+}
+
+
 
 C_EXTERN void
 on_play_clicked (GtkObject *object, gpointer data)
