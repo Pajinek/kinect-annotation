@@ -22,6 +22,7 @@ on_save_clicked (GtkObject *object, gpointer data)
 {
     App * app = (App*) data;
     g_print ("INFO: save project to xml.\n");
+    app->save_xml();
 }
 
 C_EXTERN void 

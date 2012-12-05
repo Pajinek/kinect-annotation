@@ -264,7 +264,7 @@ void App::record(){
     set_mode ( MODE_REC );
 
     // init new file for record
-    int timestamp = (int) time(NULL);
+    timestamp = (int) time(NULL);
     sprintf(file_rgb,"data/%d.rgb.avi", timestamp);		
     sprintf(file_depth,"data/%d.depth.avi", timestamp);	
     printf("INFO: create files: %s\n" 
@@ -387,66 +387,9 @@ u_int App::list_add_new(u_int start, u_int end, gchar * type){
     anns->debug();
 }
 
-
-
-// list
-
-AnnList::AnnList(){
-    last_index = 0;
-    activate = 0;
-}
-
-AnnList::~AnnList(){
-
-}
-
-u_int AnnList::add(u_int begin, u_int end, gchar * type){
-    list_item  * item = new list_item() ;
-    item->b = begin;
-    item->e = end;
-    strcpy(item->type, type);
-
-    list[last_index] =  item; 
-    return ++last_index;
-}
-
-void AnnList::update(u_int index, u_int begin, u_int end, gchar * type){
-
-    strcpy(list[index]->type, type);
-    debug();
-}
-
-void AnnList::remove(u_int index){
-
-}
-
-u_int AnnList::get_active(){
-    return activate;
-}
-
-
-list_item * AnnList::get_active_row(){
-    return list[activate];
-}
-
-void AnnList::set_active(u_int index){
-    activate = index;
-
-    debug();
-}
-
-void AnnList::debug(){
-  
-    std::map<u_int, list_item *>::iterator it;
-
-    // show content:
-    printf ("===========================\n");
-    printf ("active: %d\n", activate);
-    printf ("---------------------------\n");
-    for ( it=list.begin() ; it != list.end(); it++ ){
-        printf("%d | %d | %d | %s \n", (*it).first, (*it).second->b, (*it).second->e, (*it).second->type );
-    }
-    printf ("===========================\n");
-    
-
+void App::save_xml(){
+    sprintf(file_xml, "data/%d", timestamp); 
+    Config * config = new Config(file_xml);
+    config->save(anns);
+    delete config;
 }
