@@ -1,6 +1,5 @@
 
 #include <gtk/gtk.h>
-#include "freenect.h"
 #include "config.hpp"
 #include <cv.h>
 #include <highgui.h> // contain function for loading video
@@ -18,6 +17,15 @@
 //#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
 //#define CODEC       CV_FOURCC('M', 'J', 'P', 'G')
 #define CODEC       CV_FOURCC('D','I','V','X')
+
+#define OPENNI True
+
+#ifdef OPENNI 
+    #include "openni.h"
+#else
+    #include "freenect.h"
+#endif
+
 
 gboolean 
 on_timer (gpointer arg);
@@ -81,7 +89,13 @@ class App {
         GtkWidget   * drawarea;
         GtkScale    * scale;
         GtkAdjustment * adjustment;
+
+#ifdef OPENNI 
+        CVKinectWrapper * kinect;
+#else
         freenect    * kinect;
+#endif
+
         Config      * config;
 
         App(char * file);
