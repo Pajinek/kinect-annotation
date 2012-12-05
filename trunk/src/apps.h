@@ -5,9 +5,13 @@
 #include <cv.h>
 #include <highgui.h> // contain function for loading video
 
-#define MODE_PLAY 1
-#define MODE_PAUSE 2
-#define MODE_REC 3
+#define MODE_PLAY   1
+#define MODE_PAUSE  2
+// if value > 10
+#define MODE_SHOW  11
+#define MODE_REC   12
+#define MODE_REC_PAUSE 13
+#define MODE_STOP  14
 
 #define C_EXTERN    extern "C"
 
@@ -24,6 +28,8 @@ on_draw_video (GtkWidget * object, GdkEvent * eev, gpointer data);
 C_EXTERN gboolean
 on_scale_move_slider (GtkScale * object, gdouble value, gpointer data);
 
+C_EXTERN void cell_edited (GtkCellRendererText *cell, const gchar *path_string, const gchar *new_text, gpointer data);
+
 typedef struct {
     u_int b;
     u_int e;
@@ -33,7 +39,7 @@ typedef struct {
 
 class AnnList {
 
-        std::map<u_int, list_item> list;
+        std::map<u_int, list_item *> list;
         u_int last_index;
         u_int activate;
 
@@ -45,6 +51,8 @@ class AnnList {
         void remove(u_int index);
         void debug();
         void set_active(u_int index);
+        u_int get_active();
+        list_item * get_active_row();
 };
 
 
@@ -88,6 +96,7 @@ class App {
     public:
         gint n_frame;
         AnnList * anns;
+        GtkTreeIter iter;
 
         GtkBuilder  * builder; 
         GtkWidget   * window;
@@ -107,6 +116,8 @@ class App {
         void set_param_video();
         gboolean next_frame();
         void set_pos_frame(double value);
+        void set_text_row();
+        void update_active_row();
         void play();
         void record();
 

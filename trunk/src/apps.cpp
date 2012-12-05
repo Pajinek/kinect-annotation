@@ -102,7 +102,7 @@ App::App(char * file){
         load_video(file);
     } 
 
-    if ( kinect->get_error() ){
+    if ( kinect->get_error() && file == NULL ){
         // TODO: show warning message
         printf ("WARING: finect not init.\n");
         
@@ -114,7 +114,7 @@ App::App(char * file){
         capture = cvCaptureFromCAM( -1 );
         set_mode ( (gint) MODE_PAUSE );
         cvGrabFrame ( capture );
-        cvSetCaptureProperty( capture, CV_CAP_PROP_CONVERT_RGB, 1.);
+        cvSetCaptureProperty( capture, CV_CAP_PROP_CONVERT_RGB, 0.);
         int fps = cvGetCaptureProperty( capture, CV_CAP_PROP_FPS);
         printf( "INFO: count of fps %d\n", fps );
 
@@ -123,30 +123,39 @@ App::App(char * file){
         // params for kinect
         frame_width = 640;
         frame_height = 480;
-        frame_fps = 15;
+        frame_fps = 30;
+
+        set_mode( MODE_STOP );
     }
+
+    store = gtk_list_store_new(4, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING);
 
     // create table column
     GtkCellRenderer     *renderer;
+    GtkCellRenderer     *renderer2;
     renderer = gtk_cell_renderer_text_new ();
+    renderer2 = gtk_cell_renderer_text_new ();
+    g_object_set(renderer, "editable", TRUE, NULL);
+    g_signal_connect (renderer, "edited",
+                    G_CALLBACK (cell_edited), store);
+    g_object_set_data (G_OBJECT (renderer), "column", GINT_TO_POINTER (0));
 
     col = gtk_tree_view_column_new_with_attributes (
-        " Id ", renderer, "text", 0, NULL);
+        " Id ", renderer2, "text", 0, NULL);
 
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
     col = gtk_tree_view_column_new_with_attributes (
-        "   Begin (FPS)   ", renderer, "text", 1, NULL);
+        "   Begin (FPS)   ", renderer2, "text", 1, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
 
     col = gtk_tree_view_column_new_with_attributes (
-        "   End (FPS)   ", renderer, "text", 2, NULL);
+        "   End (FPS)   ", renderer2, "text", 2, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
 
     col = gtk_tree_view_column_new_with_attributes (
         "   Type", renderer, "text", 3, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW (list), col);
 
-    store = gtk_list_store_new(4, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING);
     gtk_tree_view_set_model(GTK_TREE_VIEW(list), GTK_TREE_MODEL(store));
 
     //gtk_tree_model_foreach(GTK_TREE_MODEL(store), foreach_func, NULL);
@@ -198,8 +207,13 @@ void App::load_video(char * file){
     capture = cvCaptureFromAVI( file );
     if (capture != NULL) {
         set_mode ( (gint) MODE_PAUSE );
-        cvGrabFrame ( capture );
+
         cvSetCaptureProperty( capture, CV_CAP_PROP_POS_AVI_RATIO, 0.);
+        cvGrabFrame ( capture );
+
+        // set max size 
+        double count = cvGetCaptureProperty( capture, CV_CAP_PROP_FRAME_COUNT);
+        gtk_adjustment_set_upper (adjustment, (gint) count ); 
 
         is_move_pos_video = true;
     }
@@ -219,7 +233,13 @@ void App::play(){
     }
     
     gtk_button_set_label (button_play, "pause" );
-    set_mode( MODE_PLAY );
+
+    if ( mode < MODE_SHOW ) { 
+        set_mode( MODE_PLAY );
+    } else {
+        set_mode( MODE_SHOW );
+    }
+
     // set timer for recording
     g_timeout_add (1000.0 / frame_fps, on_timer, (void *) this );
 
@@ -228,10 +248,16 @@ void App::play(){
 }
 
 void App::record(){
+    if ( mode < MODE_SHOW ) {
+        printf("can't record\n");
+        return;
+    }
+
     if ( mode == MODE_REC ) {
         cvReleaseVideoWriter( &writer_rgb );
         cvReleaseVideoWriter( &writer_depth ); 
         set_mode ( MODE_PAUSE );
+        gtk_button_set_label (button_rec, "rec" );
         return;
     }
 
@@ -255,7 +281,7 @@ gint App::get_mode(){
 
 void App::scale_frame(){
     gtk_adjustment_set_value (adjustment, n_frame);
-    if( mode == MODE_REC && gtk_adjustment_get_upper (adjustment) < n_frame ){
+    if( mode == MODE_REC && gtk_adjustment_get_upper (adjustment) <= n_frame ){
         gtk_adjustment_set_upper (adjustment, n_frame ); 
     }
 }
@@ -265,17 +291,46 @@ void App::set_pos_frame(double value){
 
     if (!is_move_pos_video) return;
 
-    // avi move only about one frame
-    if( n_frame  <= val + 1 || n_frame >= val - 1 ) {
-        cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, val);
+    if (n_frame == val) return;
+    
+    n_frame = val;
 
-        frame_rgb = cvQueryFrame ( capture ); 
+    // avi move only about one frame
+    if( val > 0) {
+        // FIXME !!
+        cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, val);
+        frame_rgb = cvQueryFrame ( capture );
+
         cvResize(frame_rgb, frame_rgb_small);
-        n_frame = val;
+        cvResize(frame_depth, frame_depth_small);
+        cvCvtColor(frame_depth_small, frame_depth_small, CV_BGR2RGB);
+        cvCvtColor(frame_rgb_small, frame_rgb_small, CV_BGR2RGB);
 
         // re-draw new frame
         gtk_widget_queue_draw ( GTK_WIDGET (drawarea) );
-    }
+   }
+}
+
+void App::set_text_row(){
+    list_item * it = anns->get_active_row();
+    gchar begin[32];
+    gchar end[32];
+    sprintf(end, "%d", it->e);
+    sprintf(begin, "%d", it->b);
+    gtk_entry_set_text(button_list_e2, begin);
+    gtk_entry_set_text(button_list_e3, end);
+    gtk_entry_set_text(button_list_e1, it->type);
+}
+
+
+void App::update_active_row(){
+    //  gtk_list_store_remove(GTK_LIST_STORE(model), &iter); 
+    //
+/*  if (gtk_tree_selection_get_selected(
+      GTK_TREE_SELECTION(object), &model, &iter )) {
+
+        gtk_tree_model_set(model, &iter, 0, "new",  -1);
+    }*/
 }
 
 gboolean App::next_frame (){
@@ -295,14 +350,18 @@ gboolean App::next_frame (){
 
         cvResize(frame_rgb, frame_rgb_small);
         cvResize(frame_depth, frame_depth_small);
+        cvCvtColor(frame_depth_small, frame_depth_small, CV_BGR2RGB);
+        cvCvtColor(frame_rgb_small, frame_rgb_small, CV_BGR2RGB);
 
         if ( mode == MODE_REC ) {
             cvWriteFrame( writer_rgb, frame_rgb);
             cvWriteFrame( writer_depth, frame_depth);
+            n_frame ++;
+        } else if ( mode == MODE_PLAY ) {
+            n_frame ++;
         }
 
         // count frames
-        n_frame ++;
         scale_frame ();
         return true;
     } else {
@@ -323,7 +382,7 @@ u_int App::list_add_new(u_int start, u_int end, gchar * type){
     u_int index = anns->add( start, end, type );
 
     gtk_list_store_append(store, &iter);
-    gtk_list_store_set(store, &iter, 0, index, 1, start, 2, end, 3, type, -1);
+    gtk_list_store_set(store, &iter, 0, (index - 1), 1, start, 2, end, 3, type, -1);
 
     anns->debug();
 }
@@ -342,10 +401,10 @@ AnnList::~AnnList(){
 }
 
 u_int AnnList::add(u_int begin, u_int end, gchar * type){
-    list_item item;
-    item.b = begin;
-    item.e = end;
-    strcpy(item.type, type);
+    list_item  * item = new list_item() ;
+    item->b = begin;
+    item->e = end;
+    strcpy(item->type, type);
 
     list[last_index] =  item; 
     return ++last_index;
@@ -353,10 +412,21 @@ u_int AnnList::add(u_int begin, u_int end, gchar * type){
 
 void AnnList::update(u_int index, u_int begin, u_int end, gchar * type){
 
+    strcpy(list[index]->type, type);
+    debug();
 }
 
 void AnnList::remove(u_int index){
 
+}
+
+u_int AnnList::get_active(){
+    return activate;
+}
+
+
+list_item * AnnList::get_active_row(){
+    return list[activate];
 }
 
 void AnnList::set_active(u_int index){
@@ -367,14 +437,14 @@ void AnnList::set_active(u_int index){
 
 void AnnList::debug(){
   
-    std::map<u_int, list_item>::iterator it;
+    std::map<u_int, list_item *>::iterator it;
 
     // show content:
     printf ("===========================\n");
     printf ("active: %d\n", activate);
     printf ("---------------------------\n");
     for ( it=list.begin() ; it != list.end(); it++ ){
-        printf("%d | %d | %d | %s \n", (*it).first, (*it).second.b, (*it).second.e, (*it).second.type );
+        printf("%d | %d | %d | %s \n", (*it).first, (*it).second->b, (*it).second->e, (*it).second->type );
     }
     printf ("===========================\n");
     

@@ -29,9 +29,9 @@ on_active_row_save (GtkObject *object, gpointer data)
 {
     App * app = (App*) data;
     g_print ("INFO: update active row.\n");
+
+    app->update_active_row();
 }
-
-
 
 C_EXTERN void
 on_play_clicked (GtkObject *object, gpointer data)
@@ -61,10 +61,36 @@ on_mouse_up (GtkObject *object, gpointer data)
     app->list_add_new(mouse_event_start, app->n_frame, (gchar *) "none");
 }
 
+C_EXTERN void 
+cell_edited (GtkCellRendererText *cell, const gchar *path_string, const gchar *new_text, gpointer data) {
+
+	GtkTreeModel *model = (GtkTreeModel *)data;
+	GtkTreePath *path = gtk_tree_path_new_from_string (path_string);
+	GtkTreeIter iter;
+
+	gint column = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cell), "column"));
+
+	gtk_tree_model_get_iter (model, &iter, path);
+	
+	gint i;
+
+	i = gtk_tree_path_get_indices (path)[0];
+
+	gtk_list_store_set (GTK_LIST_STORE (model), &iter, 3,
+                            new_text, -1);
+
+    gchar * text = g_strdup_printf("%s", new_text);
+    app->anns->update(i, 0, 0, text);
+
+	gtk_tree_path_free (path);
+}
+
 C_EXTERN void
 on_click_row (GtkObject *object, gpointer data){
 
-  GtkTreeIter iter;
+    // FIXME
+    // App * app = (App*) data;
+
   GtkTreeModel * model;
   guint value0;
   guint value1;
@@ -72,16 +98,17 @@ on_click_row (GtkObject *object, gpointer data){
   gchar * value3;
 
   if (gtk_tree_selection_get_selected(
-      GTK_TREE_SELECTION(object), &model, &iter)) {
+      GTK_TREE_SELECTION(object), &model, &(app->iter) )) {
 
-    gtk_tree_model_get(model, &iter, 0, &value0,  -1);
-    gtk_tree_model_get(model, &iter, 1, &value1,  -1);
-    gtk_tree_model_get(model, &iter, 2, &value2,  -1);
-    gtk_tree_model_get(model, &iter, 3, &value3,  -1);
+    gtk_tree_model_get(model, &(app->iter), 0, &value0,  -1);
+    gtk_tree_model_get(model, &(app->iter), 1, &value1,  -1);
+    gtk_tree_model_get(model, &(app->iter), 2, &value2,  -1);
+    gtk_tree_model_get(model, &(app->iter), 3, &value3,  -1);
 
     printf("row %d: %d %d %s\n", value0, value1, value2, value3) ;
 
     app->anns->set_active(value0);
+    app->set_text_row();
   }
 }
 
