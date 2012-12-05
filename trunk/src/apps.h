@@ -30,31 +30,6 @@ on_scale_move_slider (GtkScale * object, gdouble value, gpointer data);
 
 C_EXTERN void cell_edited (GtkCellRendererText *cell, const gchar *path_string, const gchar *new_text, gpointer data);
 
-typedef struct {
-    u_int b;
-    u_int e;
-    gchar type[64]; // TODO - it's only temporary limit for string
-} list_item;
-
-
-class AnnList {
-
-        std::map<u_int, list_item *> list;
-        u_int last_index;
-        u_int activate;
-
-    public:
-        AnnList();
-        ~AnnList();
-        u_int add(u_int begin, u_int end, gchar * type);
-        void update(u_int index, u_int begin, u_int end, gchar * type);
-        void remove(u_int index);
-        void debug();
-        void set_active(u_int index);
-        u_int get_active();
-        list_item * get_active_row();
-};
-
 
 class App {
     private:
@@ -62,7 +37,9 @@ class App {
         // limits of frames
         gint frames_max;
         gint frames_min;
-        
+
+        int timestamp;
+ 
         // file path of save video and xml
         char file_rgb[32];
         char file_depth[32];
@@ -120,6 +97,8 @@ class App {
         void update_active_row();
         void play();
         void record();
+
+        void save_xml();
 
         // list
         u_int list_add_new(u_int start, u_int end, gchar * type);
