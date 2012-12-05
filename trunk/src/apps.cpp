@@ -92,10 +92,16 @@ App::App(char * file){
     config = new Config("config.xml");
     anns = new AnnList();
 
+
+#ifdef OPENNI 
+	kinect = CVKinectWrapper::getInstance();
+	if(!kinect->init("/etc/openni/SamplesConfig.xml")) exit(0);
+
+#else
     // init kinect
     kinect = new freenect ();
-
     kinect->init (0);
+#endif
 
     // load video file
     if (file != NULL) {
@@ -175,6 +181,7 @@ App::~App(){
     printf("TODO: free all memory\n");
     // cvReleaseImage(&frame_depth_small);
     // cvReleaseImage(&frame_rgb_small);
+    delete kinect;
 }
 
 void App::set_param_video(){
@@ -341,9 +348,10 @@ gboolean App::next_frame (){
         // cvCopy(frame_rgb, frame_depth);
         frame_depth = frame_rgb;
     } else {
-        kinect->reload ();
-        frame_rgb = kinect->get_image_rgb ();
-        frame_depth = kinect->get_image_depth_rgb ();
+        if(kinect->reload ()){
+            frame_rgb = kinect->get_image_rgb ();
+            frame_depth = kinect->get_image_depth_rgb ();
+        }
     }
 
     if ( frame_rgb != NULL ) {
