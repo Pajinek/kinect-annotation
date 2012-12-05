@@ -144,11 +144,13 @@ bool CVKinectWrapper::init(string CalibFilePath)
 		XnChar strError[1024];
 		errors.ToString(strError, 1024);
 		printf("%s\n", strError);
+        error = 1;
 		return started;
 	}
 	else if (rc != XN_STATUS_OK)
 	{
 		printf("Open failed: %s\n", xnGetStatusString(rc));
+        error = 2;
 		return started;
 	}
 
@@ -156,6 +158,7 @@ bool CVKinectWrapper::init(string CalibFilePath)
 	if (rc != XN_STATUS_OK)
 	{
 		printf("No depth node exists! Check your XML.");
+        error = 3;
 		return started;
 	}
 
@@ -163,6 +166,7 @@ bool CVKinectWrapper::init(string CalibFilePath)
 	if (rc != XN_STATUS_OK)
 	{
 		printf("No image node exists! Check your XML.");
+        error = 4;
 		return started;
 	}
 
@@ -173,6 +177,7 @@ bool CVKinectWrapper::init(string CalibFilePath)
 	if (g_imageMD.FullXRes() != g_depthMD.FullXRes() || g_imageMD.FullYRes() != g_depthMD.FullYRes())
 	{
 		printf ("The device depth and image resolution must be equal!\n");
+        error = 5;
 		return started;
 	}
 
@@ -180,6 +185,7 @@ bool CVKinectWrapper::init(string CalibFilePath)
 	if (g_imageMD.PixelFormat() != XN_PIXEL_FORMAT_RGB24)
 	{
 		printf("The device image format must be RGB24\n");
+        error = 6;
 		return started;
 	}
 
@@ -195,6 +201,7 @@ bool CVKinectWrapper::init(string CalibFilePath)
 	if (!g_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
 	{
 		printf("Supplied user generator doesn't support skeleton\n");
+        error = 7;
 		return 1;
 	}
 	rc = g_UserGenerator.RegisterUserCallbacks(User_NewUser, User_LostUser, NULL, hUserCallbacks);
@@ -210,6 +217,7 @@ bool CVKinectWrapper::init(string CalibFilePath)
 		if (!g_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_POSE_DETECTION))
 		{
 			printf("Pose required, but not supported\n");
+            error = 7;
 			return 1;
 		}
 		rc = g_UserGenerator.GetPoseDetectionCap().RegisterToPoseDetected(UserPose_PoseDetected, NULL, hPoseDetected);
@@ -301,10 +309,10 @@ bool CVKinectWrapper::reload(){
 
 	cvtColor(*_depthImage,aux,CV_GRAY2BGR);
 
-	//_rgbImage->copyTo(*_comboImage);
+	_rgbImage->copyTo(*_comboImage);
 	aux.copyTo(*_comboImage, *_depthImage);
 
-
+    return true;
     //skeleton
 	char strLabel[50] = "";
 	XnUserID aUsers[15];

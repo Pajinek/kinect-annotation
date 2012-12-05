@@ -62,7 +62,7 @@ public:
     void getCombo(Mat *combo);
     void getDisplayDepth(Mat *displayDepth);
 
-    u_int get_error(){ return 0; };
+    u_int get_error(){ return error; };
     IplImage * get_image_rgb();
     IplImage * get_image_depth_rgb();
 	
@@ -78,6 +78,7 @@ private:
 	bool started;
 
 	Context g_context;
+    u_int error;
 
 
 	ScriptNode g_scriptNode;

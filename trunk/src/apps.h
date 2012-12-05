@@ -16,7 +16,8 @@
 
 //#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
 //#define CODEC       CV_FOURCC('M', 'J', 'P', 'G')
-#define CODEC       CV_FOURCC('D','I','V','X')
+//#define CODEC       CV_FOURCC('D','I','V','X')
+#define CODEC       0
 
 #define OPENNI True
 
