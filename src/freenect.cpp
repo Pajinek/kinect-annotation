@@ -113,7 +113,7 @@ freenect::reload ()
 
     // When using YUV_RGB mode, RGB frames only arrive at 15Hz, so we shouldn't force them to draw in lock-step.
     // However, this is CPU/GPU intensive when we are receiving frames in lockstep.
-    if (current_format == FREENECT_VIDEO_YUV_RGB)
+    if (current_format == FREENECT_VIDEO_RGB) // FREENECT_VIDEO_YUV_RGB
       {
           while (!got_depth && !got_rgb)
             {
@@ -161,8 +161,8 @@ freenect::reload ()
             (char *) depth_front,
             frame_dph->width * frame_dph->height * frame_dph->nChannels);
 
-    //cvCvtColor(frame_dph,frame_dph,CV_BGR2RGB);
-    //cvCvtColor(frame_rgb,frame_rgb,CV_BGR2RGB);
+    cvCvtColor(frame_dph,frame_dph,CV_BGR2RGB);
+    cvCvtColor(frame_rgb,frame_rgb,CV_BGR2RGB);
     return 0;
 }
 
