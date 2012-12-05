@@ -26,7 +26,7 @@ public:
    static int filter_from, filter_to;
 
    void init(short user_device_number);
-   int reload();
+   bool reload();
    
    int get_error();
    void set_filter(int from, int to);

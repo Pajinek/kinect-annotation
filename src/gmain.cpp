@@ -116,7 +116,7 @@ on_click_row (GtkObject *object, gpointer data){
 gboolean
 on_timer (gpointer data)
 {
-    App * app = (App *) data;
+    //App * app = (App *) data;
 
     if( app->get_mode() == MODE_PAUSE ) return false;
 

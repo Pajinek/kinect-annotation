@@ -105,7 +105,7 @@ freenect::freenect (void)
       }
 }
 
-int
+bool
 freenect::reload ()
 {
 
@@ -152,7 +152,6 @@ freenect::reload ()
           got_rgb = 0;
       }
 
-    pthread_mutex_unlock (&gl_backbuf_mutex);
 
     memcpy (frame_rgb->imageData,
             (char *) rgb_front,

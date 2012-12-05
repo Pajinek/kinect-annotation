@@ -92,46 +92,56 @@ App::App(char * file){
     config = new Config("config.xml");
     anns = new AnnList();
 
+    // set default value
+    kinect = NULL;
+    frame_width = 640;
+    frame_height = 480;
+    frame_fps = 10;
 
-#ifdef OPENNI 
-	kinect = CVKinectWrapper::getInstance();
-	if(!kinect->init("/etc/openni/SamplesConfig.xml")) exit(0);
-
-#else
-    // init kinect
-    kinect = new freenect ();
-    kinect->init (0);
-#endif
-
-    // load video file
     if (file != NULL) {
+        // laod file
         load_video(file);
-    } 
 
-    if ( kinect->get_error() && file == NULL ){
-        // TODO: show warning message
-        printf ("WARING: finect not init.\n");
-        
-        /* messagedialog1 = GTK_WIDGET (gtk_builder_get_object (builder, "messagedialog1"));
-        gtk_widget_activate  (messagedialog1);
-        gtk_widget_show  (messagedialog1); */
-    
-        // feedback for video
-        capture = cvCaptureFromCAM( -1 );
-        set_mode ( (gint) MODE_PAUSE );
-        cvGrabFrame ( capture );
-        cvSetCaptureProperty( capture, CV_CAP_PROP_CONVERT_RGB, 0.);
-        int fps = cvGetCaptureProperty( capture, CV_CAP_PROP_FPS);
-        printf( "INFO: count of fps %d\n", fps );
+        set_mode( MODE_PAUSE );
 
-        set_param_video();
+        printf("INFO: load video\n");
+
     } else {
-        // params for kinect
-        frame_width = 640;
-        frame_height = 480;
-        frame_fps = 30;
-
+        // run kinect
+#ifdef OPENNI 
+    	kinect = CVKinectWrapper::getInstance();
+	    if(kinect->init("/etc/openni/SamplesConfig.xml"))
+            printf("INFO: kinect openni\n");
+#else
+        // init kinect
+        kinect = new freenect ();
+        kinect->init (0);
+        printf("INFO: kinect libfreenect\n");
+#endif
         set_mode( MODE_STOP );
+
+        if ( kinect->get_error() && file == NULL ){
+            // feedback for kinect
+
+            // TODO: show warning message
+            printf ("WARING: finect not init.\n");
+            
+            /* messagedialog1 = GTK_WIDGET (gtk_builder_get_object (builder, "messagedialog1"));
+            gtk_widget_activate  (messagedialog1);
+            gtk_widget_show  (messagedialog1); */
+        
+            // feedback for video
+            capture = cvCaptureFromCAM( -1 );
+            set_mode ( (gint) MODE_PAUSE );
+            cvGrabFrame ( capture );
+            cvSetCaptureProperty( capture, CV_CAP_PROP_CONVERT_RGB, 0.);
+            int fps = cvGetCaptureProperty( capture, CV_CAP_PROP_FPS);
+            printf( "INFO: count of fps %d\n", fps );
+
+            set_param_video();
+        
+            printf("INFO: feedback cam\n");
+        }
     }
 
     store = gtk_list_store_new(4, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_STRING);
@@ -181,7 +191,7 @@ App::~App(){
     printf("TODO: free all memory\n");
     // cvReleaseImage(&frame_depth_small);
     // cvReleaseImage(&frame_rgb_small);
-    delete kinect;
+    if (kinect) delete kinect;
 }
 
 void App::set_param_video(){
@@ -199,13 +209,6 @@ void App::set_param_video(){
         printf("Error: capture is NULL");
     }
 
-    frame_width = 640;
-    frame_height = 480;
-// 640x480  15 fps 1900 kbps 
-// 320x240  30 fps  900 kbps 
-// 160x120  30 fps 675 kbps 
-
-    frame_fps = 15;
 }
 
 void App::load_video(char * file){
@@ -223,6 +226,7 @@ void App::load_video(char * file){
         gtk_adjustment_set_upper (adjustment, (gint) count ); 
 
         is_move_pos_video = true;
+        frame_fps = 30;
     }
 }
 
@@ -247,6 +251,7 @@ void App::play(){
         set_mode( MODE_SHOW );
     }
 
+    printf("FPS: %d\n", frame_fps);
     // set timer for recording
     g_timeout_add (1000.0 / frame_fps, on_timer, (void *) this );
 
@@ -342,7 +347,7 @@ void App::update_active_row(){
 
 gboolean App::next_frame (){
 
-    if ( kinect->get_error () ){   
+    if ( is_move_pos_video ){   
         // camera for feedback
         frame_rgb = cvQueryFrame ( capture ); 
         // cvCopy(frame_rgb, frame_depth);
@@ -351,6 +356,8 @@ gboolean App::next_frame (){
         if(kinect->reload ()){
             frame_rgb = kinect->get_image_rgb ();
             frame_depth = kinect->get_image_depth_rgb ();
+        } else {
+            printf("INFO: cpu slow\n");
         }
     }
 
@@ -360,7 +367,6 @@ gboolean App::next_frame (){
         cvResize(frame_depth, frame_depth_small);
         cvCvtColor(frame_depth_small, frame_depth_small, CV_BGR2RGB);
         cvCvtColor(frame_rgb_small, frame_rgb_small, CV_BGR2RGB);
-
         if ( mode == MODE_REC ) {
             cvWriteFrame( writer_rgb, frame_rgb);
             cvWriteFrame( writer_depth, frame_depth);
