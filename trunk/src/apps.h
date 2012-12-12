@@ -53,8 +53,12 @@ class App {
         char file_rgb[32];
         char file_depth[32];
         char file_xml[32];
+        char  * file_config;
+        char  * file_video;
 
         CvCapture * capture;
+        CvCapture * capture_rgb;
+        CvCapture * capture_depth;
         IplImage  * frame_rgb;
         IplImage  * frame_depth;
         IplImage  * frame_rgb_small;
@@ -78,6 +82,7 @@ class App {
         GtkListStore * store;
 
         bool is_move_pos_video;
+        bool is_video_load;
 
     public:
         gint n_frame;
@@ -100,11 +105,13 @@ class App {
         Config      * config;
 
         App(char * file);
+        short Run();
         ~App();
 
         void set_mode(gint _mode);
         gint get_mode();
         void load_video(char * file);
+        void load_video();
         void set_param_video();
         gboolean next_frame();
         void set_pos_frame(double value);

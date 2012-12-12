@@ -65,6 +65,8 @@ public:
     u_int get_error(){ return error; };
     IplImage * get_image_rgb();
     IplImage * get_image_depth_rgb();
+    float * get_skeleton_float();
+    float skeleton[3*10];
 	
     ~CVKinectWrapper();
 
