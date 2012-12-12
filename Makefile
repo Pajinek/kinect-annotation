@@ -13,7 +13,7 @@ PROG_2 = annotation-gtkmm
 OBJECTS_2 = freenect.o config.o ggmain.o 
 
 # Kinect libfreenect library
-LIBS = `pkg-config libfreenect --libs` -lm -lusb-1.0 -lfreenect -Wunknown-pragmas
+LIBS = `pkg-config libfreenect --libs` -lm -lusb-1.0 -lfreenect -Wunknown-pragmas -Wno-unknown-pragmas
 #LIBS +=   -lpthread -lm -lusb-1.0 #-I/usr/local/include/libfreenect/ # no fedora -L/usr/local/lib64/
 
 # kinect openni library

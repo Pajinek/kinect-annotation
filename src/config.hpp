@@ -37,10 +37,14 @@ class Config {
     char * path_xml;
     char * path_rgb;
     char * path_depth;
-
+    char * path_skeleton;
+    bool is_valid;
 public:
     Config( char * filename);
     void save(AnnList * anns);
+    bool load(AnnList * anns);
+    void set_path(char * file_rgb, char * file_depth);
+    void get_element_config (xmlNode * a_node, AnnList * anns);
     ~Config();
 
 };

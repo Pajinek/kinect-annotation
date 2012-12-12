@@ -213,26 +213,31 @@ main (int argc, char *argv[])
 
     int opt;
     char * file = NULL;
+    char * config = NULL;
 
-    while( (opt =  getopt (argc, argv, "hf:") ) != EOF){
+    while( (opt =  getopt (argc, argv, "hc:f:") ) != EOF){
         switch(opt){
             case 'f':
                 file = optarg;
+                break;
+            case 'c':
+                config = optarg;
                 break;
             case 'h':
             default:
                 return help();
         }
     }
-    if (argc > 1 && file == NULL) {
+    if (argc > 1 && ( file == NULL and config == NULL)) {
         return help();
     }
 
     gtk_init (&argc, &argv);
 
     // init application that contain all data
-    App * app = new App (file);
-
+    App * app = new App (config);
+    short ret = app->Run();
     delete app;
-    return 0;
+
+    return ret;
 }

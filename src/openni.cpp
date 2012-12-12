@@ -40,6 +40,7 @@ void XN_CALLBACK_TYPE User_LostUser(xn::UserGenerator& generator, XnUserID nId, 
 	xnOSGetEpochTime(&epochTime);
 	printf("%d Lost user %d\n", epochTime, nId);	
 }
+
 // Callback: Detected a pose
 void XN_CALLBACK_TYPE UserPose_PoseDetected(xn::PoseDetectionCapability& capability, const XnChar* strPose, XnUserID nId, void* pCookie)
 {
@@ -250,6 +251,7 @@ bool CVKinectWrapper::init(string CalibFilePath)
 	rawDepth = cvCreateImage (cvSize (640, 480), IPL_DEPTH_8U, 3);
 
 	started = true;
+    error = 0;
 	return started;
 }
 
@@ -301,30 +303,57 @@ bool CVKinectWrapper::reload(){
 
 	double min, max;
 
+    /*
 	Mat aux(480,640,CV_8UC3);
-
 	minMaxLoc(*_rawDepth, &min, &max,NULL,NULL);
-
 	_rawDepth->convertTo(*_depthImage, CV_8UC1, 255.0/max);
-
 	cvtColor(*_depthImage,aux,CV_GRAY2BGR);
-
 	_rgbImage->copyTo(*_comboImage);
 	aux.copyTo(*_comboImage, *_depthImage);
+    */
 
-    return true;
+    // temporary convert to 16bit to 8 bit
+	_rawDepth->convertTo(*_depthImage, CV_8UC1, 255.0/1048);
+	for(int y=0; y < comboImage->height; y++){
+	    for(int x=0; x < comboImage->width; x++){
+            // copy 16bit to 2x8 bit RGB
+/*            ((u_char * )(comboImage->imageData + y))[x] = 255; // _rawDepth->at<short>(y,x) && 256 ;
+            ((u_char * )(comboImage->imageData + y))[x+1] = 255; //_rawDepth->at<short>(y,x) >> 8 ;*/
+			_comboImage->at<Vec3b>(y,x) = Vec3b( _rawDepth->at<short>(y,x) & 255, 10*_rawDepth->at<short>(y,x) >> 8, 0);
+        }
+    }
+	//cvtColor(*_depthImage,*_comboImage,CV_GRAY2BGR);
+
     //skeleton
 	char strLabel[50] = "";
 	XnUserID aUsers[15];
 	XnUInt16 nUsers = 15;
 	g_UserGenerator.GetUsers(aUsers, nUsers);
 	for (int i = 0; i < nUsers; ++i){
-        XnSkeletonJointPosition Head;
+        int j=0;
+        XnSkeletonJointPosition Pos;
         g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
-           aUsers[i], XN_SKEL_HEAD, Head);
-        printf("%d: (%f,%f,%f) [%f]\n", aUsers[i],
-               Head.position.X, Head.position.Y, Head.position.Z,
-               Head.fConfidence);
+           aUsers[i], XN_SKEL_HEAD, Pos);
+        // head 0-2
+        skeleton[j] = Pos.position.X;
+        skeleton[j++] = Pos.position.Y;
+        skeleton[j++] = Pos.position.Z;
+
+        g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
+           aUsers[i], XN_SKEL_NECK, Pos);
+        // neck 3-5
+        skeleton[j++] = Pos.position.X;
+        skeleton[j++] = Pos.position.Y;
+        skeleton[j++] = Pos.position.Z;
+
+        g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
+           aUsers[i], XN_SKEL_RIGHT_SHOULDER, Pos);
+        // neck 3-5
+        skeleton[j++] = Pos.position.X;
+        skeleton[j++] = Pos.position.Y;
+        skeleton[j++] = Pos.position.Z;
+
+        break;
     }
     
 
@@ -356,19 +385,24 @@ void CVKinectWrapper::getDisplayDepth(Mat *displayDepth){
 IplImage * CVKinectWrapper::get_image_rgb(){
 	//_rgbImage->copyTo(*rgbImage);
 	if (!started) return rgbImage;
-    
+   
+    // only cope memory of data from C++ to C model 
     memcpy(rgbImage->imageData, (char *) _rgbImage->data, 640*480*3);
     return rgbImage;
 }
 
 IplImage * CVKinectWrapper::get_image_depth_rgb(){
 	//_comboImage->copyTo(*comboImage);
-	
 	if (!started) return comboImage;
 
+    // only cope memory of data from C++ to C model 
     memcpy(comboImage->imageData, (char *) _comboImage->data, 640*480*3);
     
     return comboImage;
+}
+
+float * CVKinectWrapper::get_skeleton_float(){
+    return skeleton;
 }
 
 

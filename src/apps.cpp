@@ -30,19 +30,39 @@ gboolean
     return FALSE; /* do not stop walking the store, call us with next row */
   }
 
-
 App::App(char * file){
-
-    // load data from glade xml
-    builder = gtk_builder_new ();
-    gtk_builder_add_from_file (builder, "src/window.glade", NULL);
-    window = GTK_WIDGET (gtk_builder_get_object (builder, "window1"));
 
     // init default value
     mode = 0;
     n_frame = 0;
     capture = NULL;
     is_move_pos_video = false;
+    file_video = NULL;
+    file_config = file;
+    timestamp = time(NULL);
+    is_video_load = false;
+
+    config = new Config(file);
+    anns = new AnnList();
+    if (config->load(anns)){
+        config->set_path(file_rgb, file_depth);
+        strcpy(file_xml, file);
+        printf("video: '%s' '%s' \n", file_rgb, file_depth);
+        is_video_load = true;
+    } else {
+        sprintf(file_rgb,"data/%d.rgb.avi", timestamp);		
+        sprintf(file_depth,"data/%d.depth.avi", timestamp);	
+        sprintf(file_xml, "data/%d.xml", timestamp); 
+    }
+}
+
+short App::Run(){
+
+    // load data from glade xml
+    builder = gtk_builder_new ();
+    gtk_builder_add_from_file (builder, "src/window.glade", NULL);
+    window = GTK_WIDGET (gtk_builder_get_object (builder, "window1"));
+
     // temporary value for create columns
 	GtkTreeViewColumn * col;
 
@@ -89,18 +109,16 @@ App::App(char * file){
     gtk_widget_set_app_paintable (drawarea, true);
     gtk_widget_set_double_buffered (drawarea, true);
 
-    config = new Config("config.xml");
-    anns = new AnnList();
 
     // set default value
     kinect = NULL;
     frame_width = 640;
     frame_height = 480;
-    frame_fps = 10;
+    frame_fps = 30;
 
-    if (file != NULL) {
+    if (is_video_load) {
         // laod file
-        load_video(file);
+        load_video();
 
         set_mode( MODE_PAUSE );
 
@@ -120,11 +138,11 @@ App::App(char * file){
 #endif
         set_mode( MODE_STOP );
 
-        if ( kinect->get_error() && file == NULL ){
+        if ( kinect->get_error() && file_video == NULL ){
             // feedback for kinect
 
             // TODO: show warning message
-            printf ("WARING: finect not init.\n");
+            printf ("WARING: kinect not init.\n");
             
             /* messagedialog1 = GTK_WIDGET (gtk_builder_get_object (builder, "messagedialog1"));
             gtk_widget_activate  (messagedialog1);
@@ -180,11 +198,26 @@ App::App(char * file){
     // selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
     // g_signal_connect(selection, "changed", G_CALLBACK(on_click_row), label);
     //
+
+    //reload data
+
+    std::map<u_int, list_item *>::iterator it;
+    for ( it=anns->list.begin() ; it != anns->list.end(); it++ ){
+        printf("%d | %d | %d | %s \n", (*it).first, (*it).second->b, (*it).second->e, (*it).second->type );
+        
+        GtkTreeIter iter;
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter, 0,  (*it).first, 1,  (*it).second->b, 2, (*it).second->e, 3, (*it).second->type, -1);
+        
+    }
+    
     gtk_builder_connect_signals (builder, (void *) this);
     g_object_unref (G_OBJECT (builder));
 
     gtk_widget_show (window);                
     gtk_main ();
+
+    return 0;
 }
 
 App::~App(){
@@ -211,6 +244,32 @@ void App::set_param_video(){
 
 }
 
+void App::load_video(){
+    printf("INFO: load file %s\n", file_rgb);
+
+    capture_rgb = cvCaptureFromAVI( file_rgb );
+    if (capture_rgb != NULL) {
+        set_mode ( (gint) MODE_PAUSE );
+
+        cvSetCaptureProperty( capture_rgb, CV_CAP_PROP_POS_AVI_RATIO, 0.);
+        cvGrabFrame ( capture_rgb );
+
+        // set max size 
+        double count = cvGetCaptureProperty( capture_rgb, CV_CAP_PROP_FRAME_COUNT);
+        gtk_adjustment_set_upper (adjustment, (gint) count ); 
+
+        is_move_pos_video = true;
+        frame_fps = 30;
+    } 
+
+    capture_depth = cvCaptureFromAVI( file_depth );
+    if (capture_depth != NULL) {
+
+        cvSetCaptureProperty( capture_depth, CV_CAP_PROP_POS_AVI_RATIO, 0.);
+        cvGrabFrame ( capture_depth );
+
+    } 
+}
 void App::load_video(char * file){
     printf("INFO: load file %s\n", file);
 
@@ -235,11 +294,12 @@ void App::set_mode(gint _mode){
 }
 
 void App::play(){
-
+    printf ("mode %d\n", mode);
     if ( mode == MODE_PLAY ) {
         set_mode ( MODE_PAUSE );
         gtk_button_set_label (button_play, "play" );
         g_print ("INFO: pause video.\n");
+
         return;
     }
     
@@ -261,14 +321,14 @@ void App::play(){
 
 void App::record(){
     if ( mode < MODE_SHOW ) {
-        printf("can't record\n");
+        printf("can't record %d\n", mode);
         return;
     }
 
     if ( mode == MODE_REC ) {
         cvReleaseVideoWriter( &writer_rgb );
         cvReleaseVideoWriter( &writer_depth ); 
-        set_mode ( MODE_PAUSE );
+        set_mode ( MODE_STOP );
         gtk_button_set_label (button_rec, "rec" );
         return;
     }
@@ -276,9 +336,6 @@ void App::record(){
     set_mode ( MODE_REC );
 
     // init new file for record
-    timestamp = (int) time(NULL);
-    sprintf(file_rgb,"data/%d.rgb.avi", timestamp);		
-    sprintf(file_depth,"data/%d.depth.avi", timestamp);	
     printf("INFO: create files: %s\n" 
            "                    %s\n", file_rgb, file_depth);	
     writer_rgb = cvCreateVideoWriter(file_rgb, CODEC , frame_fps, cvSize(frame_width, frame_height),  1 /* is color */ );
@@ -310,8 +367,11 @@ void App::set_pos_frame(double value){
     // avi move only about one frame
     if( val > 0) {
         // FIXME !!
-        cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, val);
-        frame_rgb = cvQueryFrame ( capture );
+        cvSetCaptureProperty(capture_rgb, CV_CAP_PROP_POS_FRAMES, val);
+        frame_rgb = cvQueryFrame ( capture_rgb );
+
+        cvSetCaptureProperty(capture_depth, CV_CAP_PROP_POS_FRAMES, val);
+        frame_depth = cvQueryFrame ( capture_depth );
 
         cvResize(frame_rgb, frame_rgb_small);
         cvResize(frame_depth, frame_depth_small);
@@ -349,9 +409,10 @@ gboolean App::next_frame (){
 
     if ( is_move_pos_video ){   
         // camera for feedback
-        frame_rgb = cvQueryFrame ( capture ); 
+        frame_rgb = cvQueryFrame ( capture_rgb ); 
         // cvCopy(frame_rgb, frame_depth);
-        frame_depth = frame_rgb;
+        frame_depth = cvQueryFrame ( capture_depth ); 
+;
     } else {
         if(kinect->reload ()){
             frame_rgb = kinect->get_image_rgb ();
@@ -402,8 +463,8 @@ u_int App::list_add_new(u_int start, u_int end, gchar * type){
 }
 
 void App::save_xml(){
-    sprintf(file_xml, "data/%d", timestamp); 
     Config * config = new Config(file_xml);
+    printf("save to %s\n", file_xml);
     config->save(anns);
     delete config;
 }
