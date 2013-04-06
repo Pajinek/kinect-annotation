@@ -83,6 +83,10 @@ short App::Run(){
     button_list_e2 = GTK_ENTRY (gtk_builder_get_object (builder, "entry2"));
     button_list_e3 = GTK_ENTRY (gtk_builder_get_object (builder, "entry3"));
 
+    action_record_rgb = false;
+    action_record_depth = false;
+    action_record_skeleton = false;
+
     // treeview - list for annotations
     list = GTK_TREE_VIEW (gtk_builder_get_object (builder, "treeview1"));
 
@@ -320,14 +324,16 @@ void App::play(){
 }
 
 void App::record(){
+
+
     if ( mode < MODE_SHOW ) {
         printf("can't record %d\n", mode);
         return;
     }
 
     if ( mode == MODE_REC ) {
-        cvReleaseVideoWriter( &writer_rgb );
-        cvReleaseVideoWriter( &writer_depth ); 
+        if ( action_record_rgb ) cvReleaseVideoWriter( &writer_rgb );
+        if ( action_record_depth ) cvReleaseVideoWriter( &writer_depth ); 
         set_mode ( MODE_STOP );
         gtk_button_set_label (button_rec, "rec" );
         return;
@@ -338,9 +344,16 @@ void App::record(){
     // init new file for record
     printf("INFO: create files: %s\n" 
            "                    %s\n", file_rgb, file_depth);	
-    writer_rgb = cvCreateVideoWriter(file_rgb, CODEC , frame_fps, cvSize(frame_width, frame_height),  1 /* is color */ );
-    writer_depth = cvCreateVideoWriter(file_depth, CODEC , frame_fps, cvSize(frame_width, frame_height), 1 /* is color */ ); 
-
+    if ( action_record_rgb ) {
+        writer_rgb = cvCreateVideoWriter(
+                            file_rgb, CODEC , frame_fps, 
+                            cvSize(frame_width, frame_height),  1 /* is color */ );
+    }
+    if ( action_record_depth ) {
+        writer_depth = cvCreateVideoWriter(
+                            file_depth, CODEC , frame_fps,
+                            cvSize(frame_width, frame_height), 1 /* is color */ ); 
+    }
     gtk_button_set_label (button_rec, "stop rec" );
 }
 
@@ -428,9 +441,18 @@ gboolean App::next_frame (){
         cvResize(frame_depth, frame_depth_small);
         cvCvtColor(frame_depth_small, frame_depth_small, CV_BGR2RGB);
         cvCvtColor(frame_rgb_small, frame_rgb_small, CV_BGR2RGB);
+
         if ( mode == MODE_REC ) {
-            cvWriteFrame( writer_rgb, frame_rgb);
-            cvWriteFrame( writer_depth, frame_depth);
+            if ( action_record_rgb ) {
+                cvWriteFrame( writer_rgb, frame_rgb);
+            }
+            if ( action_record_depth ) {
+                cvWriteFrame( writer_depth, frame_depth);
+            }
+            if ( action_record_skeleton ) {
+                float * skl = kinect->get_skeleton_float();
+                printf("%f %f %f \n", skl[0], skl[1], skl[2]);
+            }
             n_frame ++;
         } else if ( mode == MODE_PLAY ) {
             n_frame ++;

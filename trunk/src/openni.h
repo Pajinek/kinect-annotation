@@ -36,6 +36,8 @@ using namespace cv;
 using namespace std;
 
 
+#define ENUM_SKELETON_POINT_SIZE 8
+
 #define DISPLAY_MODE_OVERLAY	1
 #define DISPLAY_MODE_DEPTH		2
 #define DISPLAY_MODE_IMAGE		3
@@ -75,13 +77,11 @@ private:
 
 	CVKinectWrapper();
 
-
 	string CalibFilePath;
 	bool started;
 
 	Context g_context;
     u_int error;
-
 
 	ScriptNode g_scriptNode;
 	DepthGenerator g_depth;
@@ -94,7 +94,6 @@ private:
 	Mat *_depthImage;
 	Mat *_comboImage;
 	Mat *_rawDepth;
-
 
 	IplImage *rgbImage;
 	IplImage *depthImage;
