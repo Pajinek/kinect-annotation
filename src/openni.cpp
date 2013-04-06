@@ -15,6 +15,31 @@ XnBool g_bDrawSkeleton = TRUE;
 XnBool g_bPrintID = TRUE;
 XnBool g_bPrintState = TRUE;
 UserGenerator g_UserGenerator;
+DepthGenerator g_DepthGenerator;
+
+XnSkeletonJoint ENUM_SKELETON_POINT [] = {
+    XN_SKEL_HEAD,
+    XN_SKEL_NECK,
+    XN_SKEL_RIGHT_SHOULDER,
+    XN_SKEL_RIGHT_ELBOW,
+    XN_SKEL_RIGHT_HAND,
+    XN_SKEL_LEFT_SHOULDER,
+    XN_SKEL_LEFT_ELBOW,
+    XN_SKEL_LEFT_HAND
+};
+
+static float
+    depth2meter( float depthValue )
+{
+    float depthM = 0.;
+    if (depthValue <= 2047) {
+       depthM = 0.1236 * tan(depthValue / 2842.5 + 1.1863);
+    } else {
+        //assert
+        printf("ERROR: depthValue must be lesser then 2048");
+    }
+    return depthM;
+}
 
 // skeleton
 // Callback: New user was detected
@@ -329,34 +354,44 @@ bool CVKinectWrapper::reload(){
 	XnUserID aUsers[15];
 	XnUInt16 nUsers = 15;
 	g_UserGenerator.GetUsers(aUsers, nUsers);
+    printf("number of users %d\n", nUsers);
+	XnPoint3D pt[1], t_pt[1];
+
 	for (int i = 0; i < nUsers; ++i){
-        int j=0;
+        //get active users
+        if ( i != nUsers-1){
+            continue;
+        }
+
+        if (!g_UserGenerator.GetSkeletonCap().IsTracking(aUsers[i]))
+        {
+            printf("not tracked!\n");
+            return false;
+        }
+
+        printf ("active user: %d\n", i);
+
         XnSkeletonJointPosition Pos;
-        g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
-           aUsers[i], XN_SKEL_HEAD, Pos);
-        // head 0-2
-        skeleton[j] = Pos.position.X;
-        skeleton[j++] = Pos.position.Y;
-        skeleton[j++] = Pos.position.Z;
+        // copy skeleton point to float array
+        for ( unsigned short j=0; j < ENUM_SKELETON_POINT_SIZE; ++j ) {
 
-        g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
-           aUsers[i], XN_SKEL_NECK, Pos);
-        // neck 3-5
-        skeleton[j++] = Pos.position.X;
-        skeleton[j++] = Pos.position.Y;
-        skeleton[j++] = Pos.position.Z;
+            g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
+               aUsers[i], ENUM_SKELETON_POINT[j], Pos);
 
-        g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
-           aUsers[i], XN_SKEL_RIGHT_SHOULDER, Pos);
-        // neck 3-5
-        skeleton[j++] = Pos.position.X;
-        skeleton[j++] = Pos.position.Y;
-        skeleton[j++] = Pos.position.Z;
+            t_pt[0] =  Pos.position;
+            pt[0] =  Pos.position;
+            // ConvertRealWorldToProjective use for real value
+    	    //g_depth.ConvertRealWorldToProjective(1, t_pt, pt);
+    	    //g_depth.ConvertProjectiveToRealWorld(1, t_pt, pt);
+
+            skeleton[j * 3] = pt[0].X;
+            skeleton[j * 3 + 1] = pt[0].Y;
+            skeleton[j * 3 + 2] = pt[0].Z;
+        }
 
         break;
     }
     
-
 	return true;
 }
 

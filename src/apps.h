@@ -14,10 +14,10 @@
 
 #define C_EXTERN    extern "C"
 
-//#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
+#define CODEC       CV_FOURCC('T', 'H', 'E', 'O')
 //#define CODEC       CV_FOURCC('M', 'J', 'P', 'G')
 //#define CODEC       CV_FOURCC('D','I','V','X')
-#define CODEC       0
+//#define CODEC       0
 
 #define OPENNI True
 
@@ -88,6 +88,7 @@ class App {
         gint n_frame;
         AnnList * anns;
         GtkTreeIter iter;
+        bool action_record_rgb, action_record_depth, action_record_skeleton;
 
         GtkBuilder  * builder; 
         GtkWidget   * window;

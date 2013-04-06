@@ -26,6 +26,33 @@ on_save_clicked (GtkObject *object, gpointer data)
 }
 
 C_EXTERN void 
+on_record_depth (GtkObject *object, gpointer data)
+{
+    App * app = (App*) data;
+    bool status = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON(object));
+    g_print ("INFO: click on depth %d\n", status);
+    app->action_record_depth = status;
+}
+
+C_EXTERN void 
+on_record_skeleton (GtkObject *object, gpointer data)
+{
+    App * app = (App*) data;
+    bool status = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON(object));
+    g_print ("INFO: click on skeleton %d\n", status);
+    app->action_record_skeleton = status;
+}
+
+C_EXTERN void 
+on_record_rgb (GtkObject *object, gpointer data)
+{
+    App * app = (App*) data;
+    bool status = gtk_toggle_button_get_active ( GTK_TOGGLE_BUTTON(object));
+    g_print ("INFO: click on rgb %d\n", status);
+    app->action_record_rgb = status;
+}
+
+C_EXTERN void 
 on_active_row_save (GtkObject *object, gpointer data)
 {
     App * app = (App*) data;

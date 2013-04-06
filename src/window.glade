@@ -200,6 +200,71 @@
             <property name="y">550</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="width_request">100</property>
+            <property name="height_request">30</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="xalign">0.44999998807907104</property>
+            <property name="label" translatable="yes">Record: </property>
+          </object>
+          <packing>
+            <property name="x">119</property>
+            <property name="y">600</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="checkbutton1">
+            <property name="label" translatable="yes">rgb</property>
+            <property name="width_request">80</property>
+            <property name="height_request">30</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="xalign">0</property>
+            <property name="draw_indicator">True</property>
+            <signal name="clicked" handler="on_record_rgb" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">200</property>
+            <property name="y">600</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="checkbutton2">
+            <property name="label" translatable="yes">depth</property>
+            <property name="width_request">80</property>
+            <property name="height_request">30</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="xalign">0</property>
+            <property name="draw_indicator">True</property>
+            <signal name="clicked" handler="on_record_depth" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">264</property>
+            <property name="y">600</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="checkbutton3">
+            <property name="label" translatable="yes">skeleton</property>
+            <property name="width_request">109</property>
+            <property name="height_request">30</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="xalign">0</property>
+            <property name="draw_indicator">True</property>
+            <signal name="clicked" handler="on_record_skeleton" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">350</property>
+            <property name="y">600</property>
+          </packing>
+        </child>
       </object>
     </child>
   </object>
