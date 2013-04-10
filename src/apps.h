@@ -53,6 +53,7 @@ class App {
         char file_rgb[32];
         char file_depth[32];
         char file_xml[32];
+        char file_skeleton[32];
         char  * file_config;
         char  * file_video;
 
@@ -84,6 +85,9 @@ class App {
         bool is_move_pos_video;
         bool is_video_load;
 
+        // (x,y,z) * 5 (head, two shoulder and 2 hands)
+        std::vector<float * > v_skeleton;
+        ConfigSkl * config_skl;
     public:
         gint n_frame;
         AnnList * anns;
@@ -120,7 +124,8 @@ class App {
         void update_active_row();
         void play();
         void record();
-
+        void save_skeleton(float * data, short size);
+        void load_skeleton();
         void save_xml();
 
         // list

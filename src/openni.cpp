@@ -352,10 +352,11 @@ bool CVKinectWrapper::reload(){
     //skeleton
 	char strLabel[50] = "";
 	XnUserID aUsers[15];
-	XnUInt16 nUsers = 15;
+	XnUInt16 nUsers = 2;
 	g_UserGenerator.GetUsers(aUsers, nUsers);
-    printf("number of users %d\n", nUsers);
-	XnPoint3D pt[1], t_pt[1];
+    //printf("number of users %d\n", nUsers);
+	XnPoint3D pt[1], p_pt[1];
+    user_tracker = false;
 
 	for (int i = 0; i < nUsers; ++i){
         //get active users
@@ -366,10 +367,11 @@ bool CVKinectWrapper::reload(){
         if (!g_UserGenerator.GetSkeletonCap().IsTracking(aUsers[i]))
         {
             printf("not tracked!\n");
-            return false;
+            return true;
         }
 
-        printf ("active user: %d\n", i);
+        user_tracker = true;
+        // printf ("active user: %d\n", i);
 
         XnSkeletonJointPosition Pos;
         // copy skeleton point to float array
@@ -378,15 +380,19 @@ bool CVKinectWrapper::reload(){
             g_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(
                aUsers[i], ENUM_SKELETON_POINT[j], Pos);
 
-            t_pt[0] =  Pos.position;
+            p_pt[0] =  Pos.position;
             pt[0] =  Pos.position;
             // ConvertRealWorldToProjective use for real value
-    	    //g_depth.ConvertRealWorldToProjective(1, t_pt, pt);
+    	    g_depth.ConvertRealWorldToProjective(1, p_pt, p_pt);
     	    //g_depth.ConvertProjectiveToRealWorld(1, t_pt, pt);
 
             skeleton[j * 3] = pt[0].X;
             skeleton[j * 3 + 1] = pt[0].Y;
             skeleton[j * 3 + 2] = pt[0].Z;
+
+            p_skeleton[j * 3] = p_pt[0].X;
+            p_skeleton[j * 3 + 1] = p_pt[0].Y;
+            p_skeleton[j * 3 + 2] = p_pt[0].Z;
         }
 
         break;
@@ -436,9 +442,16 @@ IplImage * CVKinectWrapper::get_image_depth_rgb(){
     return comboImage;
 }
 
+bool CVKinectWrapper::is_user_tracker(){
+    return user_tracker;
+}
+
 float * CVKinectWrapper::get_skeleton_float(){
     return skeleton;
 }
 
 
+float * CVKinectWrapper::get_skeleton_float_p(){
+    return p_skeleton;
+}
 

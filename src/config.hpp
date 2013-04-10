@@ -32,6 +32,16 @@ class AnnList {
 };
 
 
+class ConfigSkl {
+    private:
+        unsigned int counter;
+        FILE * cfile;
+    public:
+        ConfigSkl(char * filename);
+        void add(float * data, short size);
+        void close();
+};
+
 
 class Config {
     char * path_xml;

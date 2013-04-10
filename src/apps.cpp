@@ -1,5 +1,8 @@
 #include "apps.h"
 
+// smaller thumbnail for gui
+float rate_tmp = 0.54375;
+
 gboolean
   foreach_func (GtkTreeModel *model,
                 GtkTreePath  *path,
@@ -53,6 +56,7 @@ App::App(char * file){
         sprintf(file_rgb,"data/%d.rgb.avi", timestamp);		
         sprintf(file_depth,"data/%d.depth.avi", timestamp);	
         sprintf(file_xml, "data/%d.xml", timestamp); 
+        sprintf(file_skeleton, "data/%d.skeleton.txt", timestamp); 
     }
 }
 
@@ -67,9 +71,10 @@ short App::Run(){
 	GtkTreeViewColumn * col;
 
     // drawarea
+
     drawarea = GTK_WIDGET (gtk_builder_get_object (builder, "drawingarea1"));
-    frame_rgb_small = cvCreateImage(cvSize(348, 250), IPL_DEPTH_8U, 3);
-    frame_depth_small = cvCreateImage(cvSize(348, 250), IPL_DEPTH_8U, 3);
+    frame_rgb_small = cvCreateImage(cvSize(640 * rate_tmp, 480 * rate_tmp), IPL_DEPTH_8U, 3);
+    frame_depth_small = cvCreateImage(cvSize(640 * rate_tmp, 480 * rate_tmp), IPL_DEPTH_8U, 3);
 
     // scale for moving in video
     scale = GTK_SCALE (gtk_builder_get_object (builder, "scale1"));
@@ -297,6 +302,23 @@ void App::set_mode(gint _mode){
     this->mode = _mode;
 }
 
+void App::save_skeleton(float * data, short size){
+
+    // (x,y,z) * 5 (head, two shoulder and 2 hands)
+    float * n_data = (float *) malloc(sizeof(float) * size * 3);
+    for(short i = 0; i < size*3; i++){
+       n_data[i] = data[i]; 
+    }
+    //v_skeleton.push_back( n_data );
+    config_skl->add(n_data, size);
+
+    //config_skl->add(data, size);
+}
+
+void App::load_skeleton(){
+    
+}
+
 void App::play(){
     printf ("mode %d\n", mode);
     if ( mode == MODE_PLAY ) {
@@ -331,19 +353,23 @@ void App::record(){
         return;
     }
 
+    // disable record
     if ( mode == MODE_REC ) {
         if ( action_record_rgb ) cvReleaseVideoWriter( &writer_rgb );
         if ( action_record_depth ) cvReleaseVideoWriter( &writer_depth ); 
+        if ( action_record_skeleton ) config_skl->close(); 
         set_mode ( MODE_STOP );
         gtk_button_set_label (button_rec, "rec" );
         return;
     }
 
+    // enable record
     set_mode ( MODE_REC );
 
     // init new file for record
     printf("INFO: create files: %s\n" 
-           "                    %s\n", file_rgb, file_depth);	
+           "                    %s\n"	
+           "                    %s\n", file_rgb, file_depth, file_skeleton);	
     if ( action_record_rgb ) {
         writer_rgb = cvCreateVideoWriter(
                             file_rgb, CODEC , frame_fps, 
@@ -354,6 +380,11 @@ void App::record(){
                             file_depth, CODEC , frame_fps,
                             cvSize(frame_width, frame_height), 1 /* is color */ ); 
     }
+
+    if ( action_record_skeleton ) {
+        config_skl = new ConfigSkl(file_skeleton);
+    }
+
     gtk_button_set_label (button_rec, "stop rec" );
 }
 
@@ -419,7 +450,7 @@ void App::update_active_row(){
 }
 
 gboolean App::next_frame (){
-
+    float * skl = NULL;
     if ( is_move_pos_video ){   
         // camera for feedback
         frame_rgb = cvQueryFrame ( capture_rgb ); 
@@ -430,17 +461,28 @@ gboolean App::next_frame (){
         if(kinect->reload ()){
             frame_rgb = kinect->get_image_rgb ();
             frame_depth = kinect->get_image_depth_rgb ();
+            if (kinect->is_user_tracker()){
+                skl = kinect->get_skeleton_float_p();
+            }
         } else {
-            printf("INFO: cpu slow\n");
+            printf("INFO ANNOTATOR: cpu slow\n");
         }
     }
 
-    if ( frame_rgb != NULL ) {
+    if ( frame_rgb != NULL or frame_depth != NULL ) {
 
         cvResize(frame_rgb, frame_rgb_small);
         cvResize(frame_depth, frame_depth_small);
         cvCvtColor(frame_depth_small, frame_depth_small, CV_BGR2RGB);
         cvCvtColor(frame_rgb_small, frame_rgb_small, CV_BGR2RGB);
+
+        if (kinect->is_user_tracker()){
+            //printf("%f %f %f\n", skl[0]*rate_tmp, skl[1]*rate_tmp, skl[2]);
+            //printf("%f %f %f\n", skl[0], skl[1], skl[2]);
+            for( short i = 0; i < 8; i++){
+                cvCircle(frame_depth_small, cvPoint( skl[i*3]*rate_tmp, skl[i*3+1]*rate_tmp), 3, cvScalar(255,0,0), -1);
+            }
+        }
 
         if ( mode == MODE_REC ) {
             if ( action_record_rgb ) {
@@ -450,8 +492,9 @@ gboolean App::next_frame (){
                 cvWriteFrame( writer_depth, frame_depth);
             }
             if ( action_record_skeleton ) {
-                float * skl = kinect->get_skeleton_float();
-                printf("%f %f %f \n", skl[0], skl[1], skl[2]);
+                skl = kinect->get_skeleton_float();
+                save_skeleton(skl, 8);
+                //printf("%f %f %f\n", skl[0], skl[1], skl[2]);
             }
             n_frame ++;
         } else if ( mode == MODE_PLAY ) {
