@@ -63,14 +63,19 @@ public:
     void getRawDepth(Mat *rawDepth);
     void getCombo(Mat *combo);
     void getDisplayDepth(Mat *displayDepth);
+    bool is_user_tracker();
 
     u_int get_error(){ return error; };
     IplImage * get_image_rgb();
     IplImage * get_image_depth_rgb();
     float * get_skeleton_float();
+    float * get_skeleton_float_p();
     float skeleton[3*10];
+    float p_skeleton[3*10];
 	
     ~CVKinectWrapper();
+
+    bool user_tracker;
 
 private:
 	static CVKinectWrapper *_instance;

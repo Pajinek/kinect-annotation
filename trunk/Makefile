@@ -51,7 +51,7 @@ openni.o: src/openni.cpp
 	$(CXX) -c $< -Wall `pkg-config opencv --cflags --libs` -I/usr/include/ni/  -Wunknown-pragmas -Wno-unknown-pragmas
 
 %.o: src/%.cpp
-	$(CXX) $(CFLAGS_1) -c $< 
+	$(CXX) $(CFLAGS_1) -c $< -Wunknown-pragmas -Wno-unknown-pragmas
 
 
 clean:

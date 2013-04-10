@@ -2,6 +2,40 @@
 #include "config.hpp"
 
 
+ConfigSkl::ConfigSkl(char * filename){
+    counter = 0;
+    printf("TXT:open file %s\n", filename);
+    if (filename != NULL && (cfile = fopen(filename, "w"))){
+
+    } else {
+        printf("ERROR: can't open\n");        
+    }
+}
+
+void ConfigSkl::add(float * data, short size){
+    counter++;
+
+    fprintf(cfile, "%d: ", counter);
+    for (short i = 0; i < size; i++) {
+        fprintf(cfile, "%f %f %f; ", data[i*3], data[i*3+1], data[i*3+2]);
+    }
+/*
+    short i = 1;
+    fprintf(cfile, "%f %f %f; ", data[i*3], data[i*3+1], data[i*3+2]);
+    printf("%f %f %f - ", data[i*3], data[i*3+1], data[i*3+2]);
+    i = 5;
+    fprintf(cfile, "%f %f %f; ", data[i], data[i*3+1], data[i*3+2]);
+    printf("%f %f %f - ", data[i*3], data[i*3+1], data[i*3+2]);
+    i = 7;
+    fprintf(cfile, "%f %f %f; ", data[i], data[i*3+1], data[i*3+2]);
+    printf("%f %f %f\n", data[i], data[i*3+1], data[i*3+2]);*/
+    fprintf(cfile, "\n");
+}
+
+void ConfigSkl::close(){
+    fclose(cfile);
+}
+
 Config::Config(char * filename){
     
 
